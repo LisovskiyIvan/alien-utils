@@ -1,6 +1,19 @@
 export type Result<T, E> = Ok<T> | Err<E>
 
-export class Ok<T> {
+interface IResult<T, E> {
+  isOk(): this is Ok<T>;
+  isErr(): this is Err<E>;
+  unwrap(): T;
+  unwrapErr(): E;
+  unwrapOr(defaultValue: T): T;
+  unwrapOrElse(fn: (error: E) => T): T;
+  map<U>(fn: (value: T) => U): Result<U, E>;
+  mapErr<F>(fn: (error: E) => F): Result<T, F>;
+  andThen<U>(fn: (value: T) => Result<U, E>): Result<U, E>;
+  match<U>(handlers: { Ok(value: T): U; Err(error: E): U }): U;
+}
+    
+export class Ok<T> implements IResult<T, never> {
   readonly _tag = 'Ok' as const
   constructor(public readonly value: T) {}
 
@@ -53,7 +66,7 @@ export class Ok<T> {
   }
 }
 
-export class Err<E> {
+export class Err<E> implements IResult<never, E> {
   readonly _tag = 'Err' as const
   constructor(public readonly error: E) {}
 
