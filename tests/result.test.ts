@@ -288,4 +288,194 @@ describe("Result", () => {
       expect(result.unwrapErr()).toBe("HTTP Error 400");
     });
   });
+
+  describe("Статические методы", () => {
+    it("Ok.of() должен создавать Ok", () => {
+      const ok = Ok.of(42);
+      expect(ok.isOk()).toBe(true);
+      expect(ok.unwrap()).toBe(42);
+    });
+
+    it("Err.of() должен создавать Err", () => {
+      const err = Err.of("error");
+      expect(err.isErr()).toBe(true);
+      expect(err.unwrapErr()).toBe("error");
+    });
+  });
+
+  describe("Новые методы", () => {
+    describe("inspect", () => {
+      it("Ok.inspect() должен вызывать функцию и возвращать себя", () => {
+        const ok = new Ok(42);
+        let called = false;
+        const result = ok.inspect((value) => {
+          expect(value).toBe(42);
+          called = true;
+        });
+        expect(called).toBe(true);
+        expect(result).toBe(ok);
+      });
+
+      it("Err.inspect() не должен вызывать функцию", () => {
+        const err = new Err("error");
+        let called = false;
+        const result = err.inspect(() => {
+          called = true;
+        });
+        expect(called).toBe(false);
+        expect(result).toBe(err);
+      });
+    });
+
+    describe("inspectErr", () => {
+      it("Ok.inspectErr() не должен вызывать функцию", () => {
+        const ok = new Ok(42);
+        let called = false;
+        const result = ok.inspectErr(() => {
+          called = true;
+        });
+        expect(called).toBe(false);
+        expect(result).toBe(ok);
+      });
+
+      it("Err.inspectErr() должен вызывать функцию и возвращать себя", () => {
+        const err = new Err("error");
+        let called = false;
+        const result = err.inspectErr((error) => {
+          expect(error).toBe("error");
+          called = true;
+        });
+        expect(called).toBe(true);
+        expect(result).toBe(err);
+      });
+    });
+
+    describe("expect", () => {
+      it("Ok.expect() должен возвращать значение", () => {
+        const ok = new Ok(42);
+        expect(ok.expect("should not fail")).toBe(42);
+      });
+
+      it("Err.expect() должен выбрасывать ошибку с сообщением", () => {
+        const err = new Err("error");
+        expect(() => err.expect("custom message")).toThrow("custom message");
+      });
+    });
+
+    describe("expectErr", () => {
+      it("Ok.expectErr() должен выбрасывать ошибку с сообщением", () => {
+        const ok = new Ok(42);
+        expect(() => ok.expectErr("custom message")).toThrow("custom message");
+      });
+
+      it("Err.expectErr() должен возвращать ошибку", () => {
+        const err = new Err("error");
+        expect(err.expectErr("should not fail")).toBe("error");
+      });
+    });
+
+    describe("or", () => {
+      it("Ok.or() должен возвращать себя", () => {
+        const ok = new Ok(42);
+        const other = new Ok(100);
+        expect(ok.or(other)).toBe(ok);
+      });
+
+      it("Err.or() должен возвращать другой Result", () => {
+        const err = new Err("error");
+        const other = new Ok(100);
+        const result = err.or(other);
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toBe(100);
+      });
+    });
+
+    describe("orElse", () => {
+      it("Ok.orElse() должен возвращать себя", () => {
+        const ok = new Ok(42);
+        expect(ok.orElse(() => new Ok(100))).toBe(ok);
+      });
+
+      it("Err.orElse() должен вызывать функцию", () => {
+        const err = new Err("error");
+        const result = err.orElse(() => new Ok(100));
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toBe(100);
+      });
+    });
+
+    describe("ok и err", () => {
+      it("Ok.ok() должен возвращать Some", () => {
+        const ok = new Ok(42);
+        const option = ok.ok();
+        expect(option.isSome()).toBe(true);
+        expect(option.unwrap()).toBe(42);
+      });
+
+      it("Ok.err() должен возвращать None", () => {
+        const ok = new Ok(42);
+        const option = ok.err();
+        expect(option.isNone()).toBe(true);
+      });
+
+      it("Err.ok() должен возвращать None", () => {
+        const err = new Err("error");
+        const option = err.ok();
+        expect(option.isNone()).toBe(true);
+      });
+
+      it("Err.err() должен возвращать Some", () => {
+        const err = new Err("error");
+        const option = err.err();
+        expect(option.isSome()).toBe(true);
+        expect(option.unwrap()).toBe("error");
+      });
+    });
+
+    describe("collect", () => {
+      it("Ok.collect() должен собирать все Ok в массив", () => {
+        const results = [new Ok(1), new Ok(2), new Ok(3)];
+        const result = Ok.collect(results);
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toEqual([1, 2, 3]);
+      });
+
+      it("Ok.collect() должен возвращать Err если есть хотя бы один Err", () => {
+        const results = [new Ok(1), new Err("error"), new Ok(3)];
+        const result = Ok.collect(results);
+        expect(result.isErr()).toBe(true);
+        expect(result.unwrapErr()).toBe("error");
+      });
+
+      it("Ok.collect() должен возвращать Ok([]) для пустого массива", () => {
+        const result = Ok.collect([]);
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toEqual([]);
+      });
+    });
+
+    describe("partition", () => {
+      it("Ok.partition() должен разделять Ok и Err", () => {
+        const results = [
+          new Ok(1),
+          new Err("error1"),
+          new Ok(3),
+          new Err("error2"),
+        ];
+        const [oks, errs] = Ok.partition(results);
+        expect(oks.length).toBe(2);
+        expect(errs.length).toBe(2);
+        expect(oks[0].unwrap()).toBe(1);
+        expect(oks[1].unwrap()).toBe(3);
+        expect(errs[0].unwrapErr()).toBe("error1");
+        expect(errs[1].unwrapErr()).toBe("error2");
+      });
+
+      it("Ok.partition() должен возвращать пустые массивы для пустого массива", () => {
+        const [oks, errs] = Ok.partition([]);
+        expect(oks.length).toBe(0);
+        expect(errs.length).toBe(0);
+      });
+    });
+  });
 });
