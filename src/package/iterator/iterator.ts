@@ -1087,6 +1087,24 @@ export class Iter<T> implements Iterable<T> {
   }
 
   /**
+   * Находит первый элемент, удовлетворяющий предикату (потребляющая операция).
+   * Аналог find в JS массивах.
+   *
+   * @param predicate - Функция-предикат
+   * @returns Найденный элемент или undefined если не найден
+   *
+   * @example
+   * ```ts
+   * Iter.from([1, 2, 3, 4]).findJS(x => x > 2); // 3
+   * Iter.from([1, 2, 3, 4]).findJS(x => x > 10); // undefined
+   * ```
+   */
+  findJS(predicate: (value: T, index: number) => boolean): T | undefined {
+    const result = this.find(predicate);
+    return result.isSome() ? result.unwrap() : undefined;
+  }
+
+  /**
    * Находит позицию первого элемента, удовлетворяющего предикату (потребляющая операция).
    *
    * @param predicate - Функция-предикат
@@ -1119,6 +1137,24 @@ export class Iter<T> implements Iterable<T> {
       index++;
     }
     return None.instance();
+  }
+
+  /**
+   * Находит индекс первого элемента, удовлетворяющего предикату (потребляющая операция).
+   * Аналог findIndex в JS массивах.
+   *
+   * @param predicate - Функция-предикат
+   * @returns Индекс найденного элемента или -1 если не найден
+   *
+   * @example
+   * ```ts
+   * Iter.from(['a', 'b', 'c']).findIndex(x => x === 'b'); // 1
+   * Iter.from(['a', 'b', 'c']).findIndex(x => x === 'd'); // -1
+   * ```
+   */
+  findIndex(predicate: (value: T, index: number) => boolean): number {
+    const result = this.position(predicate);
+    return result.isSome() ? result.unwrap() : -1;
   }
 
   /**
@@ -1156,6 +1192,23 @@ export class Iter<T> implements Iterable<T> {
   }
 
   /**
+   * Проверяет, что все элементы удовлетворяют предикату (потребляющая операция).
+   * Аналог every в JS массивах.
+   *
+   * @param predicate - Функция-предикат
+   * @returns true если все элементы удовлетворяют предикату
+   *
+   * @example
+   * ```ts
+   * Iter.from([2, 4, 6]).everyJS(x => x % 2 === 0); // true
+   * Iter.from([2, 3, 6]).everyJS(x => x % 2 === 0); // false
+   * ```
+   */
+  everyJS(predicate: (value: T, index: number) => boolean): boolean {
+    return this.all(predicate);
+  }
+
+  /**
    * Проверяет, что хотя бы один элемент удовлетворяет предикату (потребляющая операция).
    *
    * @param predicate - Функция-предикат
@@ -1187,6 +1240,23 @@ export class Iter<T> implements Iterable<T> {
       }
     }
     return false;
+  }
+
+  /**
+   * Проверяет, что хотя бы один элемент удовлетворяет предикату (потребляющая операция).
+   * Аналог some в JS массивах.
+   *
+   * @param predicate - Функция-предикат
+   * @returns true если хотя бы один элемент удовлетворяет предикату
+   *
+   * @example
+   * ```ts
+   * Iter.from([1, 2, 3]).someJS(x => x > 2); // true
+   * Iter.from([1, 2, 3]).someJS(x => x > 5); // false
+   * ```
+   */
+  someJS(predicate: (value: T, index: number) => boolean): boolean {
+    return this.any(predicate);
   }
 
   /**
@@ -1293,6 +1363,35 @@ export class Iter<T> implements Iterable<T> {
       index++;
     }
     return None.instance();
+  }
+
+  /**
+   * Проверяет, содержит ли итератор указанный элемент (потребляющая операция).
+   * Аналог includes в JS массивах.
+   *
+   * @param searchElement - Искомый элемент
+   * @param fromIndex - Индекс начала поиска (опционально)
+   * @returns true если элемент найден, иначе false
+   *
+   * @example
+   * ```ts
+   * Iter.from([1, 2, 3]).includes(2); // true
+   * Iter.from([1, 2, 3]).includes(4); // false
+   * ```
+   */
+  includes(searchElement: T, fromIndex?: number): boolean {
+    let index = 0;
+    for (const value of this) {
+      if (fromIndex !== undefined && index < fromIndex) {
+        index++;
+        continue;
+      }
+      if (value === searchElement) {
+        return true;
+      }
+      index++;
+    }
+    return false;
   }
 
   /**

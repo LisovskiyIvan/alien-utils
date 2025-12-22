@@ -543,3 +543,38 @@ describe("Iter - Интеграция с for..of", () => {
     expect(arr).toEqual([1, 2, 3]);
   });
 });
+
+describe("Iter - Новые методы", () => {
+  test("findIndex() находит индекс первого элемента", () => {
+    expect(Iter.from(['a', 'b', 'c']).findIndex(x => x === 'b')).toBe(1);
+    expect(Iter.from(['a', 'b', 'c']).findIndex(x => x === 'd')).toBe(-1);
+  });
+
+  test("findJS() находит первый элемент или возвращает undefined", () => {
+    expect(Iter.from([1, 2, 3, 4]).findJS(x => x > 2)).toBe(3);
+    expect(Iter.from([1, 2, 3, 4]).findJS(x => x > 10)).toBeUndefined();
+  });
+
+  test("includes() проверяет наличие элемента", () => {
+    expect(Iter.from([1, 2, 3]).includes(2)).toBe(true);
+    expect(Iter.from([1, 2, 3]).includes(4)).toBe(false);
+  });
+
+  test("includes() с fromIndex", () => {
+    expect(Iter.from([1, 2, 3, 2, 4]).includes(2, 2)).toBe(true); // начинаем с индекса 2
+    expect(Iter.from([1, 2, 3, 2, 4]).includes(2, 0)).toBe(true); // начинаем с индекса 0
+    expect(Iter.from([1, 2, 3, 2, 4]).includes(1, 1)).toBe(false); // начинаем с индекса 1
+  });
+
+  test("everyJS() проверяет что все элементы удовлетворяют предикату", () => {
+    expect(Iter.from([2, 4, 6]).everyJS(x => x % 2 === 0)).toBe(true);
+    expect(Iter.from([2, 3, 6]).everyJS(x => x % 2 === 0)).toBe(false);
+    expect(Iter.empty<number>().everyJS(x => x > 0)).toBe(true); // вакуумная истина
+  });
+
+  test("someJS() проверяет что хотя бы один элемент удовлетворяет предикату", () => {
+    expect(Iter.from([1, 2, 3]).someJS(x => x > 2)).toBe(true);
+    expect(Iter.from([1, 2, 3]).someJS(x => x > 10)).toBe(false);
+    expect(Iter.empty<number>().someJS(x => x > 0)).toBe(false);
+  });
+});

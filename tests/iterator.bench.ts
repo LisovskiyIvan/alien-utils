@@ -311,10 +311,14 @@ console.log("─".repeat(80));
 const mediumData = generateData(MEDIUM_SIZE);
 
 const mapNative = benchmark(() => {
-  mediumData.map((x) => x * 2);
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.map((x) => x * 2);
 });
 const mapIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .map((x) => x * 2)
     .collect();
 });
@@ -330,10 +334,14 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const filterNative = benchmark(() => {
-  mediumData.filter((x) => x % 2 === 0);
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.filter((x) => x % 2 === 0);
 });
 const filterIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .filter((x) => x % 2 === 0)
     .collect();
 });
@@ -349,10 +357,14 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const takeNative = benchmark(() => {
-  mediumData.slice(0, 100);
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.slice(0, 100);
 });
 const takeIter = benchmark(() => {
-  Iter.from(mediumData).take(100).collect();
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data).take(100).collect();
 });
 
 console.log(formatResult(takeNative, "  Обычный JS"));
@@ -366,10 +378,14 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const reduceNative = benchmark(() => {
-  mediumData.reduce((acc, x) => acc + x, 0);
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.reduce((acc, x) => acc + x, 0);
 });
 const reduceIter = benchmark(() => {
-  Iter.from(mediumData).fold(0, (acc, x) => acc + x);
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data).fold(0, (acc, x) => acc + x);
 });
 
 console.log(formatResult(reduceNative, "  Обычный JS"));
@@ -383,10 +399,14 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const sumNative = benchmark(() => {
-  mediumData.reduce((acc, x) => acc + x, 0);
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.reduce((acc, x) => acc + x, 0);
 });
 const sumIter = benchmark(() => {
-  Iter.from(mediumData).sum();
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data).sum();
 });
 
 console.log(formatResult(sumNative, "  Обычный JS"));
@@ -415,14 +435,18 @@ for (const { name, size } of sizes) {
   const data = generateData(size);
 
   const native = benchmark(() => {
-    data
+    // Создаём копию данных для честного сравнения
+    const localData = [...data];
+    return localData
       .map((x) => x * 2)
       .filter((x) => x > 100)
       .slice(0, 10);
   });
 
   const iter = benchmark(() => {
-    Iter.from(data)
+    // Используем ту же копию данных для честного сравнения
+    const localData = [...data];
+    return Iter.from(localData)
       .map((x) => x * 2)
       .filter((x) => x > 100)
       .take(10)
@@ -446,10 +470,14 @@ const largeData = generateData(LARGE_SIZE);
 
 // Sum
 const sumMacroNative = benchmark(() => {
-  largeData.reduce((acc, x) => acc + x, 0);
+  // Создаём копию данных для честного сравнения
+  const data = [...largeData];
+  return data.reduce((acc, x) => acc + x, 0);
 });
 const sumMacroIter = benchmark(() => {
-  Iter.from(largeData).sum();
+  // Используем ту же копию данных для честного сравнения
+  const data = [...largeData];
+  return Iter.from(data).sum();
 });
 console.log(formatResult(sumMacroNative, "  Sum (native)"));
 console.log(formatResult(sumMacroIter, "  Sum (iter)"));
@@ -457,10 +485,14 @@ compareResults(sumMacroNative, sumMacroIter, "  Ускорение");
 
 // Max
 const maxMacroNative = benchmark(() => {
-  largeData.reduce((max, x) => (x > max ? x : max), largeData[0]);
+  // Создаём копию данных для честного сравнения
+  const data = [...largeData];
+  return data.reduce((max, x) => (x > max ? x : max), data[0]);
 });
 const maxMacroIter = benchmark(() => {
-  Iter.from(largeData).max();
+  // Используем ту же копию данных для честного сравнения
+  const data = [...largeData];
+  return Iter.from(data).max();
 });
 console.log(formatResult(maxMacroNative, "  Max (native)"));
 console.log(formatResult(maxMacroIter, "  Max (iter)"));
@@ -476,15 +508,19 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const forOfNative = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
   let sum = 0;
-  for (const x of mediumData) {
+  for (const x of data) {
     sum += x * 2;
   }
   return sum;
 });
 
 const forOfIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .map((x) => x * 2)
     .sum();
 });
@@ -499,10 +535,12 @@ console.log("Операция".padEnd(25) + " | Среднее  | Медиана
 console.log("─".repeat(80));
 
 const forLoopNative = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
   let sum = 0;
-  const len = mediumData.length;
+  const len = data.length;
   for (let i = 0; i < len; i++) {
-    sum += mediumData[i] * 2;
+    sum += data[i] * 2;
   }
   return sum;
 });
@@ -536,15 +574,19 @@ function* filterGenerator<T>(
 }
 
 const generatorNative = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
   const gen = filterGenerator(
-    mapGenerator(mediumData, (x) => x * 2),
+    mapGenerator(data, (x) => x * 2),
     (x) => x % 3 === 0
   );
-  Array.from(gen).slice(0, 100);
+  return Array.from(gen).slice(0, 100);
 });
 
 const generatorIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .map((x) => x * 2)
     .filter((x) => x % 3 === 0)
     .take(100)
@@ -619,14 +661,18 @@ const heavyCompute = (x: number): number => {
 };
 
 const cpuBoundNative = benchmark(() => {
-  mediumData
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data
     .map(heavyCompute)
     .filter((x) => x > 0)
     .slice(0, 100);
 });
 
 const cpuBoundIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .map(heavyCompute)
     .filter((x) => x > 0)
     .take(100)
@@ -645,14 +691,18 @@ console.log("─".repeat(80));
 const lightCompute = (x: number): number => x * 2;
 
 const gcBoundNative = benchmark(() => {
-  mediumData
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data
     .map(lightCompute)
     .filter((x) => x % 2 === 0)
     .slice(0, 100);
 });
 
 const gcBoundIter = benchmark(() => {
-  Iter.from(mediumData)
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
     .map(lightCompute)
     .filter((x) => x % 2 === 0)
     .take(100)
@@ -711,7 +761,9 @@ console.log("─".repeat(80));
 
 const fusionMultipleMapNative = benchmark(
   () => {
-    mediumData
+    // Создаём копию данных для честного сравнения
+    const data = [...mediumData];
+    return data
       .map((x) => x * 2)
       .map((x) => x + 1)
       .map((x) => x * 3)
@@ -724,7 +776,9 @@ const fusionMultipleMapNative = benchmark(
 
 const fusionMultipleMapIter = benchmark(
   () => {
-    Iter.from(mediumData)
+    // Используем ту же копию данных для честного сравнения
+    const data = [...mediumData];
+    return Iter.from(data)
       .map((x) => x * 2)
       .map((x) => x + 1)
       .map((x) => x * 3)
@@ -749,7 +803,9 @@ console.log("─".repeat(80));
 
 const fusionMultipleFilterNative = benchmark(
   () => {
-    mediumData
+    // Создаём копию данных для честного сравнения
+    const data = [...mediumData];
+    return data
       .filter((x) => x % 2 === 0)
       .filter((x) => x > 100)
       .filter((x) => x < 1000)
@@ -762,7 +818,9 @@ const fusionMultipleFilterNative = benchmark(
 
 const fusionMultipleFilterIter = benchmark(
   () => {
-    Iter.from(mediumData)
+    // Используем ту же копию данных для честного сравнения
+    const data = [...mediumData];
+    return Iter.from(data)
       .filter((x) => x % 2 === 0)
       .filter((x) => x > 100)
       .filter((x) => x < 1000)
@@ -793,7 +851,9 @@ console.log("─".repeat(80));
 
 const fusionMapFilterNative = benchmark(
   () => {
-    mediumData
+    // Создаём копию данных для честного сравнения
+    const data = [...mediumData];
+    return data
       .map((x) => x * 2)
       .filter((x) => x % 3 === 0)
       .map((x) => x + 1)
@@ -808,7 +868,9 @@ const fusionMapFilterNative = benchmark(
 
 const fusionMapFilterIter = benchmark(
   () => {
-    Iter.from(mediumData)
+    // Используем ту же копию данных для честного сравнения
+    const data = [...mediumData];
+    return Iter.from(data)
       .map((x) => x * 2)
       .filter((x) => x % 3 === 0)
       .map((x) => x + 1)
@@ -851,7 +913,9 @@ console.log("─".repeat(80));
 
 const memoryMapFilterNative = benchmark(
   () => {
-    largeData.map((x) => x * 2).filter((x) => x > 1000);
+    // Создаём копию данных для честного сравнения
+    const data = [...largeData];
+    return data.map((x) => x * 2).filter((x) => x > 1000);
   },
   20,
   3,
@@ -860,7 +924,9 @@ const memoryMapFilterNative = benchmark(
 
 const memoryMapFilterIter = benchmark(
   () => {
-    Iter.from(largeData)
+    // Используем ту же копию данных для честного сравнения
+    const data = [...largeData];
+    return Iter.from(data)
       .map((x) => x * 2)
       .filter((x) => x > 1000)
       .collect();
@@ -896,7 +962,9 @@ console.log("─".repeat(80));
 
 const memoryLongChainNative = benchmark(
   () => {
-    mediumData
+    // Создаём копию данных для честного сравнения
+    const data = [...mediumData];
+    return data
       .map((x) => x * 2)
       .filter((x) => x % 3 === 0)
       .map((x) => x + 1)
@@ -911,7 +979,9 @@ const memoryLongChainNative = benchmark(
 
 const memoryLongChainIter = benchmark(
   () => {
-    Iter.from(mediumData)
+    // Используем ту же копию данных для честного сравнения
+    const data = [...mediumData];
+    return Iter.from(data)
       .map((x) => x * 2)
       .filter((x) => x % 3 === 0)
       .map((x) => x + 1)
@@ -1067,3 +1137,212 @@ console.log("  • Используйте Iter когда важна эконо�
 console.log(
   "  • Для простых операций на маленьких массивах используйте нативный JS"
 );
+
+// ============ ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ С ЦЕПОЧКАМИ ОПЕРАЦИЙ ============
+console.log("\n\n📊 ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ С ЦЕПОЧКАМИ ОПЕРАЦИЙ\n");
+console.log("─".repeat(80));
+
+console.log("\n1️⃣  Цепочка: map().filter().take().map()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain1Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data
+    .map((x) => x * 2)
+    .filter((x) => x > 100)
+    .slice(0, 100)
+    .map((x) => x + 10);
+});
+
+const chain1Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .map((x) => x * 2)
+    .filter((x) => x > 100)
+    .take(100)
+    .map((x) => x + 10)
+    .collect();
+});
+
+console.log(formatResult(chain1Native, "  Native chain"));
+console.log(formatResult(chain1Iter, "  Iter chain"));
+compareResults(chain1Native, chain1Iter, "  Ускорение");
+
+console.log("\n2️⃣  Цепочка: filter().map().filter().take()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain2Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data
+    .filter((x) => x % 2 === 0)
+    .map((x) => x * 3)
+    .filter((x) => x > 200)
+    .slice(0, 50);
+});
+
+const chain2Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .filter((x) => x % 2 === 0)
+    .map((x) => x * 3)
+    .filter((x) => x > 200)
+    .take(50)
+    .collect();
+});
+
+console.log(formatResult(chain2Native, "  Native chain"));
+console.log(formatResult(chain2Iter, "  Iter chain"));
+compareResults(chain2Native, chain2Iter, "  Ускорение");
+
+console.log("\n3️⃣  Цепочка с unique(): map().unique().take()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain3Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return Array.from(new Set(data.map((x) => x % 1000))).slice(0, 100);
+});
+
+const chain3Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .map((x) => x % 1000)
+    .unique()
+    .take(100)
+    .collect();
+});
+
+console.log(formatResult(chain3Native, "  Native chain"));
+console.log(formatResult(chain3Iter, "  Iter chain"));
+compareResults(chain3Native, chain3Iter, "  Ускорение");
+
+console.log("\n4️⃣  Цепочка с find(): map().filter().find()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain4Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data
+    .map((x) => x * 2)
+    .filter((x) => x > 1000)
+    .find((x) => x % 7 === 0);
+});
+
+const chain4Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .map((x) => x * 2)
+    .filter((x) => x > 1000)
+    .find((x) => x % 7 === 0);
+});
+
+console.log(formatResult(chain4Native, "  Native chain"));
+console.log(formatResult(chain4Iter, "  Iter chain"));
+compareResults(chain4Native, chain4Iter, "  Ускорение");
+
+console.log("\n5️⃣  Цепочка с position(): filter().position()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain5Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  const filtered = data.filter((x) => x > 5000);
+  return filtered.indexOf(filtered.find((x) => x % 13 === 0));
+});
+
+const chain5Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .filter((x) => x > 5000)
+    .position((x) => x % 13 === 0);
+});
+
+console.log(formatResult(chain5Native, "  Native chain"));
+console.log(formatResult(chain5Iter, "  Iter chain"));
+compareResults(chain5Native, chain5Iter, "  Ускорение");
+
+console.log("\n6️⃣  Цепочка с includes(): map().includes()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain6Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.map((x) => x * 2).includes(10000);
+});
+
+const chain6Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .map((x) => x * 2)
+    .includes(10000);
+});
+
+console.log(formatResult(chain6Native, "  Native chain"));
+console.log(formatResult(chain6Iter, "  Iter chain"));
+compareResults(chain6Native, chain6Iter, "  Ускорение");
+
+console.log("\n7️⃣  Цепочка с some/every: map().some()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain7Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.map((x) => x * 2).some((x) => x > 10000);
+});
+
+const chain7Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .map((x) => x * 2)
+    .someJS((x) => x > 10000);
+});
+
+console.log(formatResult(chain7Native, "  Native chain"));
+console.log(formatResult(chain7Iter, "  Iter chain"));
+compareResults(chain7Native, chain7Iter, "  Ускорение");
+
+console.log("\n8️⃣  Цепочка с findIndex(): filter().findIndex()");
+console.log("─".repeat(80));
+console.log("Операция".padEnd(25) + " | Среднее  | Медиана  | СтдОткл");
+console.log("─".repeat(80));
+
+const chain8Native = benchmark(() => {
+  // Создаём копию данных для честного сравнения
+  const data = [...mediumData];
+  return data.filter((x) => x > 5000).findIndex((x) => x % 17 === 0);
+});
+
+const chain8Iter = benchmark(() => {
+  // Используем ту же копию данных для честного сравнения
+  const data = [...mediumData];
+  return Iter.from(data)
+    .filter((x) => x > 5000)
+    .findIndex((x) => x % 17 === 0);
+});
+
+console.log(formatResult(chain8Native, "  Native chain"));
+console.log(formatResult(chain8Iter, "  Iter chain"));
+compareResults(chain8Native, chain8Iter, "  Ускорение");
