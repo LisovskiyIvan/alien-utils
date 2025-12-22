@@ -32,6 +32,7 @@
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch",
+    "bench": "bun run tests/iterator.bench.ts",
     "playground:dev": "vite dev --config app/playground/vite.config.ts",
     "playground": "concurrently \"bun run dev\" \"bun run playground:dev\"",
     "docs:dev": "vitepress dev app/docs",
