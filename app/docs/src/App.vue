@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import CodeBlock from '@/components/CodeBlock.vue'
 
-const activeSection = ref<'home' | 'iter' | 'option' | 'result' | 'match' | 'dispatch'>('home')
+const activeSection = ref<'home' | 'iter' | 'option' | 'result' | 'match' | 'dispatch' | 'bimap'>('home')
 
 const sections = [
   { id: 'home' as const, label: 'Home', icon: '🏠' },
@@ -11,6 +11,7 @@ const sections = [
   { id: 'result' as const, label: 'Result', icon: '✅' },
   { id: 'match' as const, label: 'Match', icon: '🎯' },
   { id: 'dispatch' as const, label: 'Dispatch', icon: '🔀' },
+  { id: 'bimap' as const, label: 'Bimap', icon: '🔄' },
 ]
 
 // Iter code examples
@@ -378,7 +379,120 @@ const outer = dispatch()
 outer([1, 2, 'a']);    // "1|2|other"
 outer('hello');        // "not array"`
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString } from '@your-org/utils';
+const basicUsageCode = `import { Bimap } from '@your-org/utils';
+
+const bimap = new Bimap<string, number>();
+
+bimap.set('alice', 1);
+bimap.set('bob', 2);
+bimap.set('charlie', 3);
+
+bimap.get('alice');         // 1
+bimap.getReverse(2);         // 'bob'
+bimap.has('charlie');       // true
+bimap.hasValue(3);          // true`
+
+const creationCode = `// From constructor
+const bimap = new Bimap<string, number>();
+
+// From static from
+const bimap2 = Bimap.from([
+  ['USD', 'US Dollar'],
+  ['EUR', 'Euro'],
+  ['GBP', 'British Pound']
+]);
+
+// From static of
+const bimap3 = Bimap.of(
+  ['active', 1],
+  ['inactive', 2],
+  ['pending', 3]
+);`
+
+const oneToOneCode = `const bimap = new Bimap<string, number>();
+
+// Setting a new key with an existing value removes the old key
+bimap.set('alice', 1);
+bimap.set('bob', 1);  // alice is automatically removed
+
+console.log(bimap.has('alice'));   // false
+console.log(bimap.has('bob'));     // true
+console.log(bimap.size);           // 1`
+
+const deleteCode = `const bimap = new Bimap<string, number>();
+bimap.set('alice', 1);
+bimap.set('bob', 2);
+
+bimap.delete('alice');           // true, removes alice => 1
+bimap.deleteValue(2);            // true, removes bob => 2
+bimap.delete('unknown');         // false
+bimap.deleteValue(999);          // false`
+
+const iterationCode = `const bimap = Bimap.of(
+  ['alice', 1],
+  ['bob', 2],
+  ['charlie', 3]
+);
+
+bimap.keys();              // ['alice', 'bob', 'charlie']
+bimap.values();            // [1, 2, 3]
+bimap.entries();           // [['alice', 1], ['bob', 2], ['charlie', 3]]
+bimap.reverseEntries();    // [[1, 'alice'], [2, 'bob'], [3, 'charlie']]
+
+bimap.forEach((value, key) => {
+  console.log(\`\${key} => \${value}\`);
+});
+
+bimap.forEachReverse((key, value) => {
+  console.log(\`\${value} => \${key}\`);
+});`
+
+const currencyCode = `type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY';
+type CurrencyName = string;
+
+const currencyMap = new Bimap<CurrencyCode, CurrencyName>();
+currencyMap.set('USD', 'US Dollar');
+currencyMap.set('EUR', 'Euro');
+currencyMap.set('GBP', 'British Pound');
+currencyMap.set('JPY', 'Japanese Yen');
+
+currencyMap.get('EUR');           // 'Euro'
+currencyMap.getReverse('US Dollar'); // 'USD'`
+
+const enumCode = `enum Status {
+  Active = 1,
+  Inactive = 2,
+  Pending = 3,
+  Suspended = 4
+}
+
+const statusMap = new Bimap<Status, string>();
+statusMap.set(Status.Active, 'active');
+statusMap.set(Status.Inactive, 'inactive');
+statusMap.set(Status.Pending, 'pending');
+statusMap.set(Status.Suspended, 'suspended');
+
+statusMap.get(Status.Active);           // 'active'
+statusMap.getReverse('pending');       // Status.Pending`
+
+const userMappingCode = `const userMap = new Bimap<number, string>();
+userMap.set(1, 'alice@example.com');
+userMap.set(2, 'bob@example.com');
+userMap.set(3, 'charlie@example.com');
+
+const userId = 1;
+const email = userMap.get(userId);    // 'alice@example.com'
+
+const lookupEmail = 'bob@example.com';
+const foundId = userMap.getReverse(lookupEmail); // 2`
+
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, Bimap } from '@your-org/utils';
+
+// Bimap
+const bimap = new Bimap<string, number>();
+bimap.set('alice', 1);
+bimap.get('alice');    // 1
+bimap.getReverse(1);   // 'alice'
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -475,6 +589,10 @@ stringify(123); // "123"`
           <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-orange-500/50 transition-colors cursor-pointer" @click="activeSection = 'dispatch'">
             <h3 class="text-2xl font-semibold text-orange-400 mb-3">Dispatch</h3>
             <p class="text-gray-400">Type-based function overloading. A multimethod pattern for type-safe dispatch.</p>
+          </div>
+          <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-cyan-500/50 transition-colors cursor-pointer" @click="activeSection = 'bimap'">
+            <h3 class="text-2xl font-semibold text-cyan-400 mb-3">Bimap</h3>
+            <p class="text-gray-400">Bidirectional map for two-way lookups. Map keys to values and values back to keys.</p>
           </div>
         </div>
 
@@ -898,6 +1016,102 @@ stringify(123); // "123"`
               <span><strong>Domain APIs:</strong> Create type-safe APIs for domain objects</span>
             </li>
           </ul>
+        </div>
+      </div>
+
+      <!-- Bimap Section -->
+      <div v-if="activeSection === 'bimap'" class="max-w-4xl mx-auto px-8 py-12">
+        <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
+          <span class="text-cyan-400">🔄</span>
+          Bimap Documentation
+        </h2>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Overview</h3>
+          <p class="text-gray-300 mb-4">
+            A Bimap (Bidirectional Map) is a data structure that allows bidirectional lookup - you can find
+            values by keys and keys by values with equal efficiency.
+          </p>
+          <p class="text-gray-300 mb-4">
+            Unlike a regular Map where you can only lookup values by keys, a Bimap maintains a one-to-one
+            mapping where each key maps to exactly one value and each value maps to exactly one key.
+          </p>
+          <p class="text-gray-300">
+            This makes it perfect for bidirectional mappings like ID ↔ email, enum ↔ string, or any
+            scenario where you need to lookup in both directions.
+          </p>
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Basic Usage</h3>
+          <p class="text-gray-300 mb-4">
+            Create a Bimap and add key-value pairs using <code class="bg-gray-800 px-2 py-1 rounded text-pink-400">.set()</code>:
+          </p>
+          <CodeBlock :code="basicUsageCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Creating a Bimap</h3>
+          <p class="text-gray-300 mb-4">
+            There are three ways to create a Bimap:
+          </p>
+          <CodeBlock :code="creationCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Bidirectional Lookup</h3>
+          <p class="text-gray-300 mb-4">
+            Use <code class="bg-gray-800 px-2 py-1 rounded text-pink-400">.get()</code> to find a value by
+            key, and <code class="bg-gray-800 px-2 py-1 rounded text-pink-400">.getReverse()</code> to find a
+            key by value:
+          </p>
+          <CodeBlock :code="basicUsageCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">One-to-One Mapping</h3>
+          <p class="text-gray-300 mb-4">
+            A Bimap enforces a one-to-one mapping. When you set a key to a value that already exists,
+            the old key-value pair is automatically removed:
+          </p>
+          <CodeBlock :code="oneToOneCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Deleting Entries</h3>
+          <p class="text-gray-300 mb-4">
+            Remove entries by key or by value:
+          </p>
+          <CodeBlock :code="deleteCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Iteration</h3>
+          <p class="text-gray-300 mb-4">
+            Iterate over keys, values, entries, or reverse entries:
+          </p>
+          <CodeBlock :code="iterationCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Use Cases</h3>
+          <h4 class="text-xl font-semibold text-white mb-4">Currency Mapping</h4>
+          <p class="text-gray-300 mb-4">
+            Map currency codes to their names bidirectionally:
+          </p>
+          <CodeBlock :code="currencyCode" />
+
+          <h4 class="text-xl font-semibold text-white mb-4 mt-8">Enum to String Mapping</h4>
+          <p class="text-gray-300 mb-4">
+            Convert between enum values and their string representations:
+          </p>
+          <CodeBlock :code="enumCode" />
+
+          <h4 class="text-xl font-semibold text-white mb-4 mt-8">User ID to Email Mapping</h4>
+          <p class="text-gray-300 mb-4">
+            Maintain a bidirectional mapping between user IDs and their emails:
+          </p>
+          <CodeBlock :code="userMappingCode" />
         </div>
       </div>
     </main>

@@ -5,6 +5,7 @@ import OptionDocs from '@/views/OptionDocs.vue'
 import ResultDocs from '@/views/ResultDocs.vue'
 import MatchDocs from '@/views/MatchDocs.vue'
 import DispatchDocs from '@/views/DispatchDocs.vue'
+import BimapDocs from '@/views/BimapDocs.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/dispatch',
       name: 'dispatch',
       component: DispatchDocs,
+    },
+    {
+      path: '/bimap',
+      name: 'bimap',
+      component: BimapDocs,
     },
   ],
 })

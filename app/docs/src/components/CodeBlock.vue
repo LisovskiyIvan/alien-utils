@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { createHighlighter, type Highlighter } from 'shiki'
 
 const props = defineProps<{
@@ -7,26 +7,46 @@ const props = defineProps<{
   language?: string
 }>()
 
-const highlighter = ref<Highlighter | null>(null)
-const highlighted = ref('')
+let sharedHighlighter: Highlighter | null = null
+let initPromise: Promise<Highlighter> | null = null
 
-onMounted(async () => {
-  highlighter.value = await createHighlighter({
+const getHighlighter = async (): Promise<Highlighter> => {
+  if (sharedHighlighter) {
+    return sharedHighlighter
+  }
+
+  if (initPromise) {
+    return initPromise
+  }
+
+  initPromise = createHighlighter({
     themes: ['github-dark'],
     langs: ['typescript', 'javascript', 'ts', 'js'],
+  }).then((h) => {
+    sharedHighlighter = h
+    return h
   })
 
-  updateHighlight()
-})
+  return initPromise
+}
 
-const updateHighlight = () => {
-  if (!highlighter.value) return
+const highlighted = ref('')
 
-  highlighted.value = highlighter.value.codeToHtml(props.code, {
+const updateHighlight = async () => {
+  const highlighter = await getHighlighter()
+  highlighted.value = highlighter.codeToHtml(props.code, {
     lang: props.language || 'typescript',
     theme: 'github-dark',
   })
 }
+
+onMounted(() => {
+  updateHighlight()
+})
+
+watch(() => props.code, () => {
+  updateHighlight()
+})
 
 const highlightedHTML = computed(() => highlighted.value)
 </script>
