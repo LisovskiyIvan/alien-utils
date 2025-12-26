@@ -1,34 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
-import { createHighlighter, type Highlighter } from 'shiki'
+import { getHighlighter } from '@/utils/shiki'
 
 const props = defineProps<{
   code: string
   language?: string
 }>()
-
-let sharedHighlighter: Highlighter | null = null
-let initPromise: Promise<Highlighter> | null = null
-
-const getHighlighter = async (): Promise<Highlighter> => {
-  if (sharedHighlighter) {
-    return sharedHighlighter
-  }
-
-  if (initPromise) {
-    return initPromise
-  }
-
-  initPromise = createHighlighter({
-    themes: ['github-dark'],
-    langs: ['typescript', 'javascript', 'ts', 'js'],
-  }).then((h) => {
-    sharedHighlighter = h
-    return h
-  })
-
-  return initPromise
-}
 
 const highlighted = ref('')
 
