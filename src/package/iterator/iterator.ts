@@ -2,6 +2,27 @@ import type { Option } from "../option/option";
 import { Some, None } from "../option/option";
 
 /**
+ * Битовая маска операций в pipeline для оптимизации
+ */
+const enum IterOp {
+  Map       = 1 << 0,
+  Filter    = 1 << 1,
+  FlatMap   = 1 << 2,
+  Flatten   = 1 << 3,
+  Take      = 1 << 4,
+  TakeWhile = 1 << 5,
+  Skip      = 1 << 6,
+  SkipWhile = 1 << 7,
+  Enumerate = 1 << 8,
+  Zip       = 1 << 9,
+  Chain     = 1 << 10,
+  StepBy    = 1 << 11,
+  Inspect   = 1 << 12,
+  Unique    = 1 << 13,
+  UniqueBy  = 1 << 14,
+}
+
+/**
  * Типы операций в pipeline
  */
 type OpType =
@@ -66,14 +87,20 @@ export class Iter<T> implements Iterable<T> {
   private readonly ops: Op[];
 
   /**
+   * Битовая маска операций для оптимизации
+   */
+  private readonly opsMask: number;
+
+  /**
    * Создаёт новый Iter из итерируемого объекта.
    *
    * @param source - Исходный итерируемый объект
    * @param ops - Массив операций pipeline (внутреннее использование)
    */
-  constructor(source: Iterable<T>, ops: Op[] = []) {
+  constructor(source: Iterable<T>, ops: Op[] = [], opsMask: number = 0) {
     this.source = source;
     this.ops = ops;
+    this.opsMask = opsMask;
   }
 
   /**
@@ -81,6 +108,23 @@ export class Iter<T> implements Iterable<T> {
    */
   private get isArray(): boolean {
     return Array.isArray(this.source);
+  }
+
+  /**
+   * Проверяет, является ли источник typed array для SIMD-оптимизаций.
+   */
+  private get isTypedArray(): boolean {
+    return (
+      this.source instanceof Int8Array ||
+      this.source instanceof Uint8Array ||
+      this.source instanceof Uint8ClampedArray ||
+      this.source instanceof Int16Array ||
+      this.source instanceof Uint16Array ||
+      this.source instanceof Int32Array ||
+      this.source instanceof Uint32Array ||
+      this.source instanceof Float32Array ||
+      this.source instanceof Float64Array
+    );
   }
 
   /**
@@ -234,8 +278,32 @@ export class Iter<T> implements Iterable<T> {
   /**
    * Выполняет все операции pipeline в едином цикле.
    * Это ключевая оптимизация - все операции выполняются за один проход.
+   *
+   * Оптимизации на основе битовой маски операций:
+   * - Отсутствие Filter: пропускаем проверки фильтрации
+   * - Fast path для Map-only: без фильтрации и сложных операций
+   * - Уменьшение количества ветвлений в горячем коде
    */
   private *executePipeline(): Generator<T> {
+    const hasFilter = (this.opsMask & IterOp.Filter) !== 0;
+    const hasTake = (this.opsMask & IterOp.Take) !== 0;
+    const hasTakeWhile = (this.opsMask & IterOp.TakeWhile) !== 0;
+    const hasSkip = (this.opsMask & IterOp.Skip) !== 0;
+    const hasSkipWhile = (this.opsMask & IterOp.SkipWhile) !== 0;
+    const hasStepBy = (this.opsMask & IterOp.StepBy) !== 0;
+    const hasInspect = (this.opsMask & IterOp.Inspect) !== 0;
+    const hasUnique = (this.opsMask & IterOp.Unique) !== 0;
+    const hasUniqueBy = (this.opsMask & IterOp.UniqueBy) !== 0;
+    const hasMap = (this.opsMask & IterOp.Map) !== 0;
+    const hasFlatMap = (this.opsMask & IterOp.FlatMap) !== 0;
+    const hasFlatten = (this.opsMask & IterOp.Flatten) !== 0;
+
+    // Fast path: только Map без фильтрации
+    if (hasMap && !hasFilter && !hasFlatMap && !hasFlatten && !hasUnique && !hasUniqueBy) {
+      yield* this.executeMapOnlyPipeline();
+      return;
+    }
+
     const iter = this.source[Symbol.iterator]();
     let index = 0;
     let takeCount = 0;
@@ -250,22 +318,24 @@ export class Iter<T> implements Iterable<T> {
     let uniqueByFn: ((value: T) => any) | null = null;
 
     // Предварительная обработка операций для оптимизации
-    for (const op of this.ops) {
-      if (op.type === "take" && typeof op.param === "number") {
-        takeLimit = op.param;
-      } else if (op.type === "skip" && typeof op.param === "number") {
-        skipLimit = op.param;
-      } else if (op.type === "stepBy" && typeof op.param === "number") {
-        stepByStep = op.param;
-      } else if (op.type === "takeWhile") {
-        takeWhileFn = op.fn as (value: T, index: number) => boolean;
-      } else if (op.type === "skipWhile") {
-        skipWhileFn = op.fn as (value: T, index: number) => boolean;
-      } else if (op.type === "unique") {
-        seen = new Set();
-      } else if (op.type === "uniqueBy") {
-        seen = new Set();
-        uniqueByFn = op.fn as (value: T) => any;
+    if (hasTake || hasSkip || hasStepBy || hasTakeWhile || hasSkipWhile || hasUnique || hasUniqueBy) {
+      for (const op of this.ops) {
+        if (op.type === "take" && typeof op.param === "number") {
+          takeLimit = op.param;
+        } else if (op.type === "skip" && typeof op.param === "number") {
+          skipLimit = op.param;
+        } else if (op.type === "stepBy" && typeof op.param === "number") {
+          stepByStep = op.param;
+        } else if (op.type === "takeWhile") {
+          takeWhileFn = op.fn as (value: T, index: number) => boolean;
+        } else if (op.type === "skipWhile") {
+          skipWhileFn = op.fn as (value: T, index: number) => boolean;
+        } else if (op.type === "unique") {
+          seen = new Set();
+        } else if (op.type === "uniqueBy") {
+          seen = new Set();
+          uniqueByFn = op.fn as (value: T) => any;
+        }
       }
     }
 
@@ -277,24 +347,24 @@ export class Iter<T> implements Iterable<T> {
       let value: any = next.value;
       let currentIndex = index++;
 
-      // Skip: пропускаем первые N элементов
-      if (skipLimit !== null) {
+      // Skip: пропускаем первые N элементов (только если есть операция)
+      if (hasSkip && skipLimit !== null) {
         if (skipCount < skipLimit) {
           skipCount++;
           continue;
         }
       }
 
-      // SkipWhile: пропускаем пока предикат true
-      if (skipping && skipWhileFn) {
+      // SkipWhile: пропускаем пока предикат true (только если есть операция)
+      if (hasSkipWhile && skipping && skipWhileFn) {
         if (skipWhileFn(value, currentIndex)) {
           continue;
         }
         skipping = false;
       }
 
-      // StepBy: берём каждый N-ный элемент
-      if (stepByStep !== null) {
+      // StepBy: берём каждый N-ный элемент (только если есть операция)
+      if (hasStepBy && stepByStep !== null) {
         if (currentIndex % stepByStep !== 0) {
           continue;
         }
@@ -305,7 +375,7 @@ export class Iter<T> implements Iterable<T> {
         const op = this.ops[i];
 
         // Если встретили flatMap или flatten, обрабатываем их особо
-        if (op.type === "flatMap") {
+        if (hasFlatMap && op.type === "flatMap") {
           const flatMapped = (
             op.fn as (value: T, index: number) => Iterable<any>
           )(value, currentIndex);
@@ -363,7 +433,7 @@ export class Iter<T> implements Iterable<T> {
 
             if (shouldYield) {
               // Take: ограничиваем количество элементов
-              if (takeLimit !== null) {
+              if (hasTake && takeLimit !== null) {
                 if (takeCount >= takeLimit) {
                   break mainLoop;
                 }
@@ -373,7 +443,7 @@ export class Iter<T> implements Iterable<T> {
             }
           }
           continue mainLoop;
-        } else if (op.type === "flatten") {
+        } else if (hasFlatten && op.type === "flatten") {
           // Применяем последующие операции к каждому развёрнутому элементу
           for (const flatValue of value as Iterable<any>) {
             let processedValue = flatValue;
@@ -428,7 +498,7 @@ export class Iter<T> implements Iterable<T> {
 
             if (shouldYield) {
               // Take: ограничиваем количество элементов
-              if (takeLimit !== null) {
+              if (hasTake && takeLimit !== null) {
                 if (takeCount >= takeLimit) {
                   break mainLoop;
                 }
@@ -450,6 +520,7 @@ export class Iter<T> implements Iterable<T> {
             break;
 
           case "filter":
+            // Эта ветка выполняется только если hasFilter === true
             if (
               !(op.fn as (value: T, index: number) => boolean)(
                 value,
@@ -492,24 +563,124 @@ export class Iter<T> implements Iterable<T> {
             break;
 
           case "inspect":
-            (op.fn as (value: T, index: number) => void)(value, currentIndex);
+            if (hasInspect) {
+              (op.fn as (value: T, index: number) => void)(value, currentIndex);
+            }
             break;
 
           case "unique":
-            if (seen!.has(value)) {
+            if (hasUnique && seen!.has(value)) {
               continue mainLoop;
             }
-            seen!.add(value);
+            if (hasUnique) seen!.add(value);
             break;
 
           case "uniqueBy":
-            if (uniqueByFn) {
+            if (hasUniqueBy && uniqueByFn) {
               const key = uniqueByFn(value);
               if (seen!.has(key)) {
                 continue mainLoop;
               }
               seen!.add(key);
             }
+            break;
+        }
+      }
+
+      // Take: ограничиваем количество элементов (только если есть операция)
+      if (hasTake && takeLimit !== null) {
+        if (takeCount >= takeLimit) {
+          break;
+        }
+        takeCount++;
+      }
+
+      yield value;
+    }
+  }
+
+  /**
+   * Fast path для pipeline с только Map операциями.
+   * Это самый частый сценарий в реальном коде.
+   * Оптимизация: никаких проверок фильтрации, только трансформация.
+   */
+  private *executeMapOnlyPipeline(): Generator<T> {
+    const iter = this.source[Symbol.iterator]();
+    let index = 0;
+    let takeCount = 0;
+    let takeLimit: number | null = null;
+    let skipCount = 0;
+    let skipLimit: number | null = null;
+    let stepByStep: number | null = null;
+    let skipping = true;
+    let skipWhileFn: ((value: T, index: number) => boolean) | null = null;
+    let takeWhileFn: ((value: T, index: number) => boolean) | null = null;
+
+    // Предварительная обработка для take, skip и т.д.
+    for (const op of this.ops) {
+      if (op.type === "take" && typeof op.param === "number") {
+        takeLimit = op.param;
+      } else if (op.type === "skip" && typeof op.param === "number") {
+        skipLimit = op.param;
+      } else if (op.type === "stepBy" && typeof op.param === "number") {
+        stepByStep = op.param;
+      } else if (op.type === "takeWhile") {
+        takeWhileFn = op.fn as (value: T, index: number) => boolean;
+      } else if (op.type === "skipWhile") {
+        skipWhileFn = op.fn as (value: T, index: number) => boolean;
+      }
+    }
+
+    // Оптимизированный цикл без проверок фильтрации
+    mainLoop: while (true) {
+      const next = iter.next();
+      if (next.done) break;
+
+      let value: any = next.value;
+      let currentIndex = index++;
+
+      // Skip: пропускаем первые N элементов
+      if (skipLimit !== null) {
+        if (skipCount < skipLimit) {
+          skipCount++;
+          continue;
+        }
+      }
+
+      // SkipWhile: пропускаем пока предикат true
+      if (skipping && skipWhileFn) {
+        if (skipWhileFn(value, currentIndex)) {
+          continue;
+        }
+        skipping = false;
+      }
+
+      // StepBy: берём каждый N-ный элемент
+      if (stepByStep !== null) {
+        if (currentIndex % stepByStep !== 0) {
+          continue;
+        }
+      }
+
+      // Применяем только Map операции (нет filter проверок!)
+      for (const op of this.ops) {
+        switch (op.type) {
+          case "map":
+            value = (op.fn as (value: any, index: number) => any)(
+              value,
+              currentIndex
+            );
+            break;
+          case "takeWhile":
+            if (takeWhileFn && !takeWhileFn(value, currentIndex)) {
+              break mainLoop;
+            }
+            break;
+          case "enumerate":
+            value = [currentIndex, value];
+            break;
+          case "inspect":
+            (op.fn as (value: T, index: number) => void)(value, currentIndex);
             break;
         }
       }
@@ -541,10 +712,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   map<U>(fn: (value: T, index: number) => U): Iter<U> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "map", fn },
-    ]) as unknown as Iter<U>;
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "map", fn }],
+      this.opsMask | IterOp.Map
+    ) as unknown as Iter<U>;
   }
 
   /**
@@ -561,10 +733,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   filter(predicate: (value: T, index: number) => boolean): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "filter", fn: predicate },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "filter", fn: predicate }],
+      this.opsMask | IterOp.Filter
+    );
   }
 
   /**
@@ -583,10 +756,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   flatMap<U>(fn: (value: T, index: number) => Iterable<U>): Iter<U> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "flatMap", fn },
-    ]) as unknown as Iter<U>;
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "flatMap", fn }],
+      this.opsMask | IterOp.FlatMap
+    ) as unknown as Iter<U>;
   }
 
   /**
@@ -603,10 +777,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   flatten<U>(this: Iter<Iterable<U>>): Iter<U> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "flatten", fn: () => {} },
-    ]) as unknown as Iter<U>;
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "flatten", fn: () => {} }],
+      this.opsMask | IterOp.Flatten
+    ) as unknown as Iter<U>;
   }
 
   /**
@@ -623,10 +798,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   take(n: number): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "take", fn: () => {}, param: n },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "take", fn: () => {}, param: n }],
+      this.opsMask | IterOp.Take
+    );
   }
 
   /**
@@ -643,10 +819,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   takeWhile(predicate: (value: T, index: number) => boolean): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "takeWhile", fn: predicate },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "takeWhile", fn: predicate }],
+      this.opsMask | IterOp.TakeWhile
+    );
   }
 
   /**
@@ -663,10 +840,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   skip(n: number): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "skip", fn: () => {}, param: n },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "skip", fn: () => {}, param: n }],
+      this.opsMask | IterOp.Skip
+    );
   }
 
   /**
@@ -683,10 +861,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   skipWhile(predicate: (value: T, index: number) => boolean): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "skipWhile", fn: predicate },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "skipWhile", fn: predicate }],
+      this.opsMask | IterOp.SkipWhile
+    );
   }
 
   /**
@@ -702,10 +881,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   enumerate(): Iter<[number, T]> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "enumerate", fn: () => {} },
-    ]) as unknown as Iter<[number, T]>;
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "enumerate", fn: () => {} }],
+      this.opsMask | IterOp.Enumerate
+    ) as unknown as Iter<[number, T]>;
   }
 
   /**
@@ -779,10 +959,11 @@ export class Iter<T> implements Iterable<T> {
     if (step <= 0) {
       throw new Error("step must be positive");
     }
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "stepBy", fn: () => {}, param: step },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "stepBy", fn: () => {}, param: step }],
+      this.opsMask | IterOp.StepBy
+    );
   }
 
   /**
@@ -801,7 +982,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   inspect(fn: (value: T, index: number) => void): Iter<T> {
-    return new Iter(this.source, [...this.ops, { type: "inspect", fn }]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "inspect", fn }],
+      this.opsMask | IterOp.Inspect
+    );
   }
 
   /**
@@ -818,10 +1003,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   unique(): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "unique", fn: () => {} },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "unique", fn: () => {} }],
+      this.opsMask | IterOp.Unique
+    );
   }
 
   /**
@@ -839,10 +1025,11 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   uniqueBy<K>(keyFn: (value: T) => K): Iter<T> {
-    return new Iter(this.source, [
-      ...this.ops,
-      { type: "uniqueBy", fn: keyFn },
-    ]);
+    return new Iter(
+      this.source,
+      [...this.ops, { type: "uniqueBy", fn: keyFn }],
+      this.opsMask | IterOp.UniqueBy
+    );
   }
 
   // ============ ПОТРЕБЛЯЮЩИЕ ОПЕРАЦИИ (collecting operations) ============
@@ -858,9 +1045,18 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   collect(): T[] {
-    // Fast path: нет операций и это массив - возвращаем копию
+    // Fast path 1: нет операций и это массив - возвращаем копию
     if (this.ops.length === 0 && this.isArray) {
       return (this.source as T[]).slice();
+    }
+
+    // Fast path 2: только map на typed array - прямой доступ с трансформацией
+    if (
+      this.isTypedArray &&
+      (this.opsMask & IterOp.Map) !== 0 &&
+      (this.opsMask & ~IterOp.Map & ~IterOp.Take & ~IterOp.Skip & ~IterOp.StepBy & ~IterOp.TakeWhile & ~IterOp.SkipWhile) === 0
+    ) {
+      return this.collectTypedArrayMapOnly();
     }
 
     // Оптимизация: если есть take, предсказываем размер
@@ -874,7 +1070,6 @@ export class Iter<T> implements Iterable<T> {
 
     const result: T[] = estimatedSize !== null ? [] : [];
     if (estimatedSize !== null && estimatedSize > 0) {
-      // Предвыделяем память для лучшей производительности
       result.length = estimatedSize;
     }
 
@@ -887,9 +1082,66 @@ export class Iter<T> implements Iterable<T> {
       }
     }
 
-    // Обрезаем массив если он был предвыделен
     if (estimatedSize !== null && i < estimatedSize) {
       result.length = i;
+    }
+
+    return result;
+  }
+
+  /**
+   * Fast path для typed array с только map операциями.
+   * Прямой доступ без iterator overhead.
+   */
+  private collectTypedArrayMapOnly(): T[] {
+    const source = this.source as unknown as ArrayLike<number>;
+    const len = source.length;
+    let takeCount = 0;
+    let takeLimit: number | null = null;
+    let skipCount = 0;
+    let skipLimit: number | null = null;
+    let stepByStep: number | null = null;
+    let stepCounter = 0;
+
+    // Извлекаем параметры из операций
+    for (const op of this.ops) {
+      if (op.type === "take" && typeof op.param === "number") {
+        takeLimit = op.param;
+      } else if (op.type === "skip" && typeof op.param === "number") {
+        skipLimit = op.param;
+      } else if (op.type === "stepBy" && typeof op.param === "number") {
+        stepByStep = op.param;
+      }
+    }
+
+    const result: T[] = [];
+    let i = 0;
+
+    for (; i < len; i++) {
+      if (skipLimit !== null && skipCount < skipLimit) {
+        skipCount++;
+        continue;
+      }
+
+      if (stepByStep !== null) {
+        if (stepCounter++ % stepByStep !== 0) {
+          continue;
+        }
+      }
+
+      if (takeLimit !== null && takeCount >= takeLimit) {
+        break;
+      }
+
+      let value: any = source[i];
+      for (const op of this.ops) {
+        if (op.type === "map") {
+          const mapFn = op.fn as (value: any, index: number) => any;
+          value = mapFn(value, i);
+        }
+      }
+
+      result[takeCount++] = value;
     }
 
     return result;
