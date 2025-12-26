@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import CodeBlock from '@/components/CodeBlock.vue'
 
-const activeSection = ref<'home' | 'iter' | 'option' | 'result' | 'match'>('home')
+const activeSection = ref<'home' | 'iter' | 'option' | 'result' | 'match' | 'dispatch'>('home')
 
 const sections = [
   { id: 'home' as const, label: 'Home', icon: '🏠' },
@@ -10,6 +10,7 @@ const sections = [
   { id: 'option' as const, label: 'Option', icon: '💎' },
   { id: 'result' as const, label: 'Result', icon: '✅' },
   { id: 'match' as const, label: 'Match', icon: '🎯' },
+  { id: 'dispatch' as const, label: 'Dispatch', icon: '🔀' },
 ]
 
 // Iter code examples
@@ -307,7 +308,77 @@ const operation = 'multiply';
 const fn = calculate(operation);
 fn(5, 3); // 15`
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match } from '@your-org/utils';
+const basicDispatchCode = `const stringify = dispatch()
+  .on(isNumber, n => n.toString())
+  .on(isString, s => s)
+  .on(isArray, a => a.join(','));
+
+stringify(123);         // "123"
+stringify('hello');     // "hello"
+stringify(['a', 'b']);  // "a,b"`
+
+const defaultHandlerCode = `const describe = dispatch()
+  .on(isNumber, n => \`Number: \${n}\`)
+  .default(v => \`Unknown: \${typeof v}\`);
+
+describe(42);       // "Number: 42"
+describe('hello');  // "Unknown: string"
+describe(true);     // "Unknown: boolean"`
+
+const customTypeGuardCode = `interface User { id: number; name: string }
+interface Product { id: number; price: number }
+
+const isUser = (v: unknown): v is User =>
+  typeof v === 'object' && v !== null && 'name' in v;
+
+const isProduct = (v: unknown): v is Product =>
+  typeof v === 'object' && v !== null && 'price' in v;
+
+const getType = dispatch()
+  .on(isUser, u => \`User: \${u.name}\`)
+  .on(isProduct, p => \`Product: $\${p.price}\`);
+
+getType({ id: 1, name: 'Alice' });     // "User: Alice"
+getType({ id: 2, price: 99.99 });      // "Product: $99.99"`
+
+const astVisitorCode = `interface BinaryNode { type: 'binary'; left: Node; right: Node; op: string }
+interface LiteralNode { type: 'literal'; value: number }
+interface VariableNode { type: 'variable'; name: string }
+type Node = BinaryNode | LiteralNode | VariableNode;
+
+const isBinary = (v: unknown): v is BinaryNode =>
+  typeof v === 'object' && v !== null && (v as any).type === 'binary';
+const isLiteral = (v: unknown): v is LiteralNode =>
+  typeof v === 'object' && v !== null && (v as any).type === 'literal';
+const isVariable = (v: unknown): v is VariableNode =>
+  typeof v === 'object' && v !== null && (v as any).type === 'variable';
+
+const evaluate = dispatch()
+  .on(isBinary, b => \`(\${evaluate(b.left)} \${b.op} \${evaluate(b.right)})\`)
+  .on(isLiteral, l => l.value.toString())
+  .on(isVariable, v => v.name);
+
+const ast: Node = {
+  type: 'binary',
+  left: { type: 'literal', value: 42 },
+  right: { type: 'variable', name: 'x' },
+  op: '+'
+};
+
+evaluate(ast); // "(42 + x)"`
+
+const nestedDispatchCode = `const inner = dispatch()
+  .on(isNumber, n => n.toString())
+  .default(() => 'other');
+
+const outer = dispatch()
+  .on(isArray, a => a.map(inner).join('|'))
+  .default(() => 'not array');
+
+outer([1, 2, 'a']);    // "1|2|other"
+outer('hello');        // "not array"`
+
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString } from '@your-org/utils';
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -329,7 +400,13 @@ const matcher = match({
   2: v => v * 2,
   _: v => v * 3
 });
-matcher(5); // 15`
+matcher(5); // 15
+
+// Dispatch
+const stringify = dispatch()
+  .on(isNumber, n => n.toString())
+  .on(isString, s => s);
+stringify(123); // "123"`
 </script>
 
 <template>
@@ -378,7 +455,7 @@ matcher(5); // 15`
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-pink-500/50 transition-colors cursor-pointer" @click="activeSection = 'iter'">
             <h3 class="text-2xl font-semibold text-pink-400 mb-3">Iter</h3>
             <p class="text-gray-400">Lazy iterator with pipeline-based optimizations. Chain operations without creating intermediate arrays.</p>
@@ -394,6 +471,10 @@ matcher(5); // 15`
           <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-purple-500/50 transition-colors cursor-pointer" @click="activeSection = 'match'">
             <h3 class="text-2xl font-semibold text-purple-400 mb-3">Match</h3>
             <p class="text-gray-400">Pattern matching function. Rust-like pattern matching for TypeScript.</p>
+          </div>
+          <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-orange-500/50 transition-colors cursor-pointer" @click="activeSection = 'dispatch'">
+            <h3 class="text-2xl font-semibold text-orange-400 mb-3">Dispatch</h3>
+            <p class="text-gray-400">Type-based function overloading. A multimethod pattern for type-safe dispatch.</p>
           </div>
         </div>
 
@@ -701,6 +782,122 @@ matcher(5); // 15`
 
           <h4 class="text-xl font-semibold text-white mb-4 mt-8">Calculation Operations</h4>
           <CodeBlock :code="matchCalculateCode" />
+        </div>
+      </div>
+
+      <!-- Dispatch Section -->
+      <div v-if="activeSection === 'dispatch'" class="max-w-4xl mx-auto px-8 py-12">
+        <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
+          <span class="text-orange-400">🔀</span>
+          Dispatch Documentation
+        </h2>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Overview</h3>
+          <p class="text-gray-300 mb-4">
+            The dispatch function provides a multimethod pattern for type-based function overloading,
+            similar to Python's singledispatch or CLOS.
+          </p>
+          <p class="text-gray-300">
+            Unlike match which works at the expression level with exact values, dispatch routes function
+            calls based on type guards, making it perfect for serialization, visitors, AST processing,
+            and domain APIs.
+          </p>
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Basic Usage</h3>
+          <p class="text-gray-300 mb-4">
+            Create a dispatch function and register handlers for different types using type guards:
+          </p>
+          <CodeBlock :code="basicDispatchCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Default Handler</h3>
+          <p class="text-gray-300 mb-4">
+            Use <code class="bg-gray-800 px-2 py-1 rounded text-pink-400">.default()</code> to handle
+            unmatched types. Without a default handler, dispatch will throw an error for unhandled
+            values:
+          </p>
+          <CodeBlock :code="defaultHandlerCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Custom Type Guards</h3>
+          <p class="text-gray-300 mb-4">
+            Create custom type guards to handle domain-specific types. The dispatch function preserves
+            type narrowing for type-safe handlers:
+          </p>
+          <CodeBlock :code="customTypeGuardCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Complex Examples</h3>
+          <h4 class="text-xl font-semibold text-white mb-4">AST Visitor Pattern</h4>
+          <p class="text-gray-300 mb-4">
+            Dispatch is excellent for implementing visitor patterns on AST nodes:
+          </p>
+          <CodeBlock :code="astVisitorCode" />
+
+          <h4 class="text-xl font-semibold text-white mb-4 mt-8">Nested Dispatch</h4>
+          <p class="text-gray-300 mb-4">
+            Dispatch functions can be composed and nested for complex scenarios:
+          </p>
+          <CodeBlock :code="nestedDispatchCode" />
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Built-in Type Guards</h3>
+          <p class="text-gray-300 mb-4">The library includes common type guards for convenience:</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isNumber</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isString</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isArray</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isBoolean</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isNull</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isUndefined</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isObject</code>
+            </div>
+            <div class="bg-gray-800 p-3 rounded border border-gray-700">
+              <code class="text-pink-400">isFunction</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 rounded-lg p-6 mb-8 border border-gray-800">
+          <h3 class="text-2xl font-bold text-white mb-4">Use Cases</h3>
+          <ul class="space-y-4 text-gray-300">
+            <li class="flex items-start gap-3">
+              <span class="text-orange-400 text-lg">🔥</span>
+              <span><strong>Serialization:</strong> Convert different data types to string representations</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-orange-400 text-lg">🔥</span>
+              <span><strong>Visitors:</strong> Implement visitor pattern for traversing complex data structures</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-orange-400 text-lg">🔥</span>
+              <span><strong>AST Processing:</strong> Process abstract syntax trees with type-specific handlers</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-orange-400 text-lg">🔥</span>
+              <span><strong>Domain APIs:</strong> Create type-safe APIs for domain objects</span>
+            </li>
+          </ul>
         </div>
       </div>
     </main>

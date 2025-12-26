@@ -2,7 +2,7 @@
 import Section from '@/components/Section.vue'
 import CodeBlock from '@/components/CodeBlock.vue'
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match } from '@your-org/utils';
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString } from '@your-org/utils';
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -24,13 +24,22 @@ const matcher = match({
   2: v => v * 2,
   _: v => v * 3
 });
-matcher(5); // 15`
+matcher(5); // 15
+
+// Dispatch
+const stringify = dispatch()
+  .on(isNumber, n => n.toString())
+  .on(isString, s => s);
+stringify(42); // "42"
+stringify("hello"); // "hello"`
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20">
     <div class="text-center mb-12">
-      <h1 class="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+      <h1
+        class="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
+      >
         Utils Library
       </h1>
       <p class="text-xl text-gray-400">
@@ -40,7 +49,8 @@ matcher(5); // 15`
 
     <Section title="Overview">
       <p class="text-gray-300 mb-4">
-        This library provides functional programming utilities inspired by Rust, including lazy iterators, pattern matching, and type-safe result handling.
+        This library provides functional programming utilities inspired by Rust, including lazy
+        iterators, pattern matching, and type-safe result handling.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         <router-link
@@ -71,6 +81,13 @@ matcher(5); // 15`
           <h3 class="text-xl font-semibold text-purple-400 mb-2">Match</h3>
           <p class="text-gray-400">Pattern matching function</p>
         </router-link>
+        <router-link
+          to="/dispatch"
+          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
+        >
+          <h3 class="text-xl font-semibold text-cyan-400 mb-2">Dispatch</h3>
+          <p class="text-gray-400">Type-based function overloading</p>
+        </router-link>
       </div>
     </Section>
 
@@ -82,7 +99,10 @@ matcher(5); // 15`
       <ul class="space-y-3 text-gray-300">
         <li class="flex items-start">
           <span class="text-pink-400 mr-2">✓</span>
-          <span><strong>Lazy Evaluation:</strong> Iterator operations are lazy and execute in a single pass</span>
+          <span
+            ><strong>Lazy Evaluation:</strong> Iterator operations are lazy and execute in a single
+            pass</span
+          >
         </li>
         <li class="flex items-start">
           <span class="text-blue-400 mr-2">✓</span>
@@ -90,7 +110,10 @@ matcher(5); // 15`
         </li>
         <li class="flex items-start">
           <span class="text-green-400 mr-2">✓</span>
-          <span><strong>Error Handling:</strong> Result type for explicit error handling without exceptions</span>
+          <span
+            ><strong>Error Handling:</strong> Result type for explicit error handling without
+            exceptions</span
+          >
         </li>
         <li class="flex items-start">
           <span class="text-purple-400 mr-2">✓</span>
@@ -102,6 +125,10 @@ matcher(5); // 15`
         </li>
         <li class="flex items-start">
           <span class="text-cyan-400 mr-2">✓</span>
+          <span><strong>Multimethod:</strong> Type-based function overloading with dispatch</span>
+        </li>
+        <li class="flex items-start">
+          <span class="text-pink-400 mr-2">✓</span>
           <span><strong>Performance:</strong> Optimized pipeline-based architecture</span>
         </li>
       </ul>
