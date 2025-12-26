@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import CodeBlock from '@/components/CodeBlock.vue'
+import { Home, RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Check, Zap } from 'lucide-vue-next'
 
 const activeSection = ref<'home' | 'iter' | 'option' | 'result' | 'match' | 'dispatch' | 'bimap'>('home')
 
 const sections = [
-  { id: 'home' as const, label: 'Home', icon: '🏠' },
-  { id: 'iter' as const, label: 'Iter', icon: '🔄' },
-  { id: 'option' as const, label: 'Option', icon: '💎' },
-  { id: 'result' as const, label: 'Result', icon: '✅' },
-  { id: 'match' as const, label: 'Match', icon: '🎯' },
-  { id: 'dispatch' as const, label: 'Dispatch', icon: '🔀' },
-  { id: 'bimap' as const, label: 'Bimap', icon: '🔄' },
+  { id: 'home' as const, label: 'Home', icon: Home },
+  { id: 'iter' as const, label: 'Iter', icon: RefreshCw },
+  { id: 'option' as const, label: 'Option', icon: Diamond },
+  { id: 'result' as const, label: 'Result', icon: CheckCircle },
+  { id: 'match' as const, label: 'Match', icon: Target },
+  { id: 'dispatch' as const, label: 'Dispatch', icon: ArrowRightLeft },
+  { id: 'bimap' as const, label: 'Bimap', icon: ArrowUpDown },
 ]
 
 // Iter code examples
@@ -540,11 +541,11 @@ stringify(123); // "123"`
             <button
               @click="activeSection = section.id"
               class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200"
-              :class="activeSection === section.id 
-                ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white border border-pink-500/50' 
+              :class="activeSection === section.id
+                ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-white border border-pink-500/50'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'"
             >
-              <span class="text-xl">{{ section.icon }}</span>
+              <component :is="section.icon" class="w-5 h-5" />
               <span class="font-medium">{{ section.label }}</span>
             </button>
           </li>
@@ -605,27 +606,27 @@ stringify(123); // "123"`
           <h3 class="text-2xl font-bold text-white mb-6">Features</h3>
           <ul class="space-y-4 text-gray-300">
             <li class="flex items-start gap-3">
-              <span class="text-pink-400 text-lg">✓</span>
+              <Check class="text-pink-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Lazy Evaluation:</strong> Iterator operations are lazy and execute in a single pass</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-blue-400 text-lg">✓</span>
+              <Check class="text-blue-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Type Safety:</strong> Full TypeScript support with type guards</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-green-400 text-lg">✓</span>
+              <Check class="text-green-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Error Handling:</strong> Result type for explicit error handling without exceptions</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-purple-400 text-lg">✓</span>
+              <Check class="text-purple-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Null Safety:</strong> Option type for nullable values</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-yellow-400 text-lg">✓</span>
+              <Check class="text-yellow-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Pattern Matching:</strong> Rust-like pattern matching</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-cyan-400 text-lg">✓</span>
+              <Check class="text-cyan-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Performance:</strong> Optimized pipeline-based architecture</span>
             </li>
           </ul>
@@ -635,7 +636,7 @@ stringify(123); // "123"`
       <!-- Iter Section -->
       <div v-if="activeSection === 'iter'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-pink-400">🔄</span>
+          <RefreshCw class="text-pink-400 w-10 h-10" />
           Iter Documentation
         </h2>
 
@@ -741,7 +742,7 @@ stringify(123); // "123"`
       <!-- Option Section -->
       <div v-if="activeSection === 'option'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-blue-400">💎</span>
+          <Diamond class="text-blue-400 w-10 h-10" />
           Option Documentation
         </h2>
 
@@ -803,7 +804,7 @@ stringify(123); // "123"`
       <!-- Result Section -->
       <div v-if="activeSection === 'result'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-green-400">✅</span>
+          <CheckCircle class="text-green-400 w-10 h-10" />
           Result Documentation
         </h2>
 
@@ -868,7 +869,7 @@ stringify(123); // "123"`
       <!-- Match Section -->
       <div v-if="activeSection === 'match'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-purple-400">🎯</span>
+          <Target class="text-purple-400 w-10 h-10" />
           Match Documentation
         </h2>
 
@@ -906,7 +907,7 @@ stringify(123); // "123"`
       <!-- Dispatch Section -->
       <div v-if="activeSection === 'dispatch'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-orange-400">🔀</span>
+          <ArrowRightLeft class="text-orange-400 w-10 h-10" />
           Dispatch Documentation
         </h2>
 
@@ -1000,19 +1001,19 @@ stringify(123); // "123"`
           <h3 class="text-2xl font-bold text-white mb-4">Use Cases</h3>
           <ul class="space-y-4 text-gray-300">
             <li class="flex items-start gap-3">
-              <span class="text-orange-400 text-lg">🔥</span>
+              <Zap class="text-orange-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Serialization:</strong> Convert different data types to string representations</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-orange-400 text-lg">🔥</span>
+              <Zap class="text-orange-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Visitors:</strong> Implement visitor pattern for traversing complex data structures</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-orange-400 text-lg">🔥</span>
+              <Zap class="text-orange-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>AST Processing:</strong> Process abstract syntax trees with type-specific handlers</span>
             </li>
             <li class="flex items-start gap-3">
-              <span class="text-orange-400 text-lg">🔥</span>
+              <Zap class="text-orange-400 w-5 h-5 flex-shrink-0 mt-0.5" />
               <span><strong>Domain APIs:</strong> Create type-safe APIs for domain objects</span>
             </li>
           </ul>
@@ -1022,7 +1023,7 @@ stringify(123); // "123"`
       <!-- Bimap Section -->
       <div v-if="activeSection === 'bimap'" class="max-w-4xl mx-auto px-8 py-12">
         <h2 class="text-4xl font-bold text-white mb-8 flex items-center gap-3">
-          <span class="text-cyan-400">🔄</span>
+          <ArrowUpDown class="text-cyan-400 w-10 h-10" />
           Bimap Documentation
         </h2>
 
