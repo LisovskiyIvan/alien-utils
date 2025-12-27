@@ -14,16 +14,7 @@ pnpm add @dayme/utils
 
 ## Usage
 
-```typescript
-import { exampleUtil, isDefined } from "@dayme/utils";
 
-const result = exampleUtil("hello");
-console.log(result); // "HELLO"
-
-if (isDefined(value)) {
-  // value is now typed as non-nullable
-}
-```
 
 ## Development
 
