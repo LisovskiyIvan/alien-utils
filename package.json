@@ -2,18 +2,27 @@
   "name": "@dayme/utils",
   "version": "0.1.0",
   "type": "module",
-  "description": "Utility functions library",
+  "description": "TypeScript utility library with functional programming data structures (Option, Result, Iter, Stack, Queue, Bimap, Match, Dispatch)",
   "keywords": [
-    "utils",
+    "typescript",
     "utilities",
-    "helpers"
+    "functional",
+    "option",
+    "result",
+    "iter",
+    "stack",
+    "queue",
+    "bimap",
+    "match",
+    "dispatch"
   ],
-  "author": "",
+  "author": "Your Name",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/YOUR_USERNAME/utils"
   },
+  "homepage": "https://YOUR_USERNAME.github.io/utils",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,6 +35,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "concurrently \"tsc --watch\" \"vite build --watch\"",
     "build": "tsc && vite build",
@@ -35,9 +47,9 @@
     "bench": "bun run tests/iterator.bench.ts",
     "playground:dev": "vite dev --config app/playground/vite.config.ts",
     "playground": "concurrently \"bun run dev\" \"bun run playground:dev\"",
-    "docs:dev": "vitepress dev app/docs",
-    "docs:build": "vitepress build app/docs",
-    "docs:preview": "vitepress preview app/docs",
+    "docs:dev": "cd app/docs && vite",
+    "docs:build": "cd app/docs && bun run build",
+    "docs:preview": "cd app/docs && vite preview",
     "lint": "oxlint ./src ./tests"
   },
   "devDependencies": {

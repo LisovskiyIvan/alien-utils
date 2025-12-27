@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { Home, RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List } from 'lucide-vue-next'
+import { RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List } from 'lucide-vue-next'
 
 const route = useRoute()
 
