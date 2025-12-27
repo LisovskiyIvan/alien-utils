@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Section from '@/components/Section.vue'
 import CodeBlock from '@/components/CodeBlock.vue'
+import { ArrowRight } from 'lucide-vue-next'
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString } from '@your-org/utils';
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap } from '@your-org/utils';
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -15,8 +16,8 @@ const option = new Some(42);
 option.unwrap(); // 42
 
 // Result
-const result = divide(10, 2); // Ok(5)
-const result = divide(10, 0); // Err("Division by zero")
+const ok = divide(10, 2); // Ok(5)
+const err = divide(10, 0); // Err("Division by zero")
 
 // Match
 const matcher = match({
@@ -31,63 +32,59 @@ const stringify = dispatch()
   .on(isNumber, n => n.toString())
   .on(isString, s => s);
 stringify(42); // "42"
-stringify("hello"); // "hello"`
+stringify("hello"); // "hello"
+
+// Bimap
+const bimap = new Bimap();
+bimap.set('alice', 1);
+bimap.get('alice');    // 1
+bimap.getReverse(1);   // 'alice'`
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20">
-    <div class="text-center mb-12">
-      <h1
-        class="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
-      >
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20">
+    <div class="text-center mb-16">
+      <h1 class="text-6xl font-bold mb-6 bg-linear-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
         Utils Library
       </h1>
-      <p class="text-xl text-gray-400">
-        A Rust-inspired TypeScript utility library for safe, expressive code
+      <p class="text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+        A Rust-inspired TypeScript utility library for safe, expressive code with lazy iterators, pattern matching, and type-safe result handling.
       </p>
+      <router-link
+        to="/docs"
+        class="inline-flex items-center gap-2 mt-8 px-8 py-4 bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-lg transition-all duration-200"
+      >
+        Read Documentation
+        <ArrowRight class="w-5 h-5" />
+      </router-link>
     </div>
 
-    <Section title="Overview">
-      <p class="text-gray-300 mb-4">
-        This library provides functional programming utilities inspired by Rust, including lazy
-        iterators, pattern matching, and type-safe result handling.
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <router-link
-          to="/iter"
-          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
-        >
+    <Section title="Features">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-pink-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-pink-400 mb-2">Iter</h3>
-          <p class="text-gray-400">Lazy iterator with pipeline-based optimizations</p>
-        </router-link>
-        <router-link
-          to="/option"
-          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
-        >
+          <p class="text-gray-400">Lazy iterator with pipeline-based optimizations. Chain operations without creating intermediate arrays.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-blue-400 mb-2">Option</h3>
-          <p class="text-gray-400">Some/None type for nullable values</p>
-        </router-link>
-        <router-link
-          to="/result"
-          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
-        >
+          <p class="text-gray-400">Some/None type for nullable values. A type-safe alternative to null/undefined.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-green-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-green-400 mb-2">Result</h3>
-          <p class="text-gray-400">Ok/Err type for error handling</p>
-        </router-link>
-        <router-link
-          to="/match"
-          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
-        >
+          <p class="text-gray-400">Ok/Err type for error handling. Explicit error handling without exceptions.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-purple-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-purple-400 mb-2">Match</h3>
-          <p class="text-gray-400">Pattern matching function</p>
-        </router-link>
-        <router-link
-          to="/dispatch"
-          class="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg transition-colors border border-gray-700"
-        >
-          <h3 class="text-xl font-semibold text-cyan-400 mb-2">Dispatch</h3>
-          <p class="text-gray-400">Type-based function overloading</p>
-        </router-link>
+          <p class="text-gray-400">Pattern matching function. Rust-like pattern matching for TypeScript.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-orange-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-orange-400 mb-2">Dispatch</h3>
+          <p class="text-gray-400">Type-based function overloading. A multimethod pattern for type-safe dispatch.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-cyan-400 mb-2">Bimap</h3>
+          <p class="text-gray-400">Bidirectional map for two-way lookups. Map keys to values and values back to keys.</p>
+        </div>
       </div>
     </Section>
 
@@ -95,43 +92,46 @@ stringify("hello"); // "hello"`
       <CodeBlock :code="quickStartCode" />
     </Section>
 
-    <Section title="Features">
-      <ul class="space-y-3 text-gray-300">
-        <li class="flex items-start">
-          <span class="text-pink-400 mr-2">✓</span>
-          <span
-            ><strong>Lazy Evaluation:</strong> Iterator operations are lazy and execute in a single
-            pass</span
-          >
+    <Section title="Why Use This Library?">
+      <ul class="space-y-4 text-gray-300">
+        <li class="flex items-start gap-3">
+          <span class="text-pink-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Lazy Evaluation:</strong> Iterator operations are lazy and execute in a single pass, avoiding intermediate arrays</span>
         </li>
-        <li class="flex items-start">
-          <span class="text-blue-400 mr-2">✓</span>
-          <span><strong>Type Safety:</strong> Full TypeScript support with type guards</span>
+        <li class="flex items-start gap-3">
+          <span class="text-blue-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Type Safety:</strong> Full TypeScript support with type guards and type narrowing</span>
         </li>
-        <li class="flex items-start">
-          <span class="text-green-400 mr-2">✓</span>
-          <span
-            ><strong>Error Handling:</strong> Result type for explicit error handling without
-            exceptions</span
-          >
+        <li class="flex items-start gap-3">
+          <span class="text-green-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Error Handling:</strong> Result type for explicit error handling without exceptions</span>
         </li>
-        <li class="flex items-start">
-          <span class="text-purple-400 mr-2">✓</span>
-          <span><strong>Null Safety:</strong> Option type for nullable values</span>
+        <li class="flex items-start gap-3">
+          <span class="text-purple-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Null Safety:</strong> Option type for nullable values eliminates null/undefined errors</span>
         </li>
-        <li class="flex items-start">
-          <span class="text-yellow-400 mr-2">✓</span>
-          <span><strong>Pattern Matching:</strong> Rust-like pattern matching</span>
+        <li class="flex items-start gap-3">
+          <span class="text-orange-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Pattern Matching:</strong> Rust-like pattern matching for expressive code</span>
         </li>
-        <li class="flex items-start">
-          <span class="text-cyan-400 mr-2">✓</span>
-          <span><strong>Multimethod:</strong> Type-based function overloading with dispatch</span>
-        </li>
-        <li class="flex items-start">
-          <span class="text-pink-400 mr-2">✓</span>
-          <span><strong>Performance:</strong> Optimized pipeline-based architecture</span>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 text-xl mt-0.5">✓</span>
+          <span><strong class="text-white">Performance:</strong> Optimized pipeline-based architecture with 6-15x faster complex operations</span>
         </li>
       </ul>
+    </Section>
+
+    <Section title="Get Started">
+      <div class="text-center">
+        <p class="text-gray-300 mb-6 text-lg">Ready to dive in? Check out the full documentation.</p>
+        <router-link
+          to="/docs"
+          class="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-lg transition-all duration-200"
+        >
+          View Documentation
+          <ArrowRight class="w-5 h-5" />
+        </router-link>
+      </div>
     </Section>
   </div>
 </template>
