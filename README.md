@@ -1,21 +1,21 @@
-# @dayme/utils
+# @dayme/alien-utils
 
 TypeScript utility library with functional programming data structures (Option, Result, Iter, Stack, Queue, Bimap, Match, Dispatch).
 
 ## Installation
 
 ```bash
-npm install @dayme/utils
+npm install @dayme/alien-utils
 # or
-bun add @dayme/utils
+bun add @dayme/alien-utils
 # or
-pnpm add @dayme/utils
+pnpm add @dayme/alien-utils
 ```
 
 ## Usage
 
 ```typescript
-import { Option, Result, Iter, Stack, Queue } from "@dayme/utils";
+import { Option, Result, Iter, Stack, Queue } from "@dayme/alien-utils";
 
 // Option - Handle nullable values
 const maybeValue = Option.from("hello");
@@ -58,15 +58,15 @@ bun run build
 # Watch mode (TypeScript + Vite)
 bun run dev
 
-# Запустить тесты
-bun run test
+# Run tests
+bun test
 
-# Запустить тесты в watch mode
-bun run test:watch
+# Run tests in watch mode
+bun test --watch
 
-# Playground для тестирования пакета
-# Сначала соберите пакет: bun run build
-# Затем запустите playground: bun run playground
+# Playground for testing the package
+# First build the package: bun run build
+# Then run playground: bun run playground
 bun run playground
 
 # Development documentation
@@ -81,25 +81,17 @@ bun run docs:preview
 
 ## Testing
 
-Тесты написаны с использованием встроенного тестового фреймворка Bun:
+Tests are written using Bun's built-in test framework:
 
 ```bash
-# Запустить все тесты
-bun run test
+# Run all tests
+bun test
 
-# Запустить тесты в watch mode
-bun run test:watch
+# Run tests in watch mode
+bun test --watch
 ```
 
-Тесты покрывают все методы классов `Option` (Some/None) и `Result` (Ok/Err), включая практические примеры использования.
-
-## Documentation
-
-Documentation is available in `app/docs` directory. To view it locally:
-
-```bash
-bun run docs:dev
-```
+Tests cover all methods of `Option` (Some/None), `Result` (Ok/Err), and other classes, including practical usage examples.
 
 ## License
 
