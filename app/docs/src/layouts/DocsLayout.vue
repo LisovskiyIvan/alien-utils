@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { Home, RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown } from 'lucide-vue-next'
+import { Home, RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -11,6 +11,8 @@ const sections = [
   { id: 'match' as const, label: 'Match', icon: Target, path: '/docs/match', color: 'purple' },
   { id: 'dispatch' as const, label: 'Dispatch', icon: ArrowRightLeft, path: '/docs/dispatch', color: 'orange' },
   { id: 'bimap' as const, label: 'Bimap', icon: ArrowUpDown, path: '/docs/bimap', color: 'cyan' },
+  { id: 'stack' as const, label: 'Stack', icon: Layers, path: '/docs/stack', color: 'rose' },
+  { id: 'queue' as const, label: 'Queue', icon: List, path: '/docs/queue', color: 'yellow' },
 ]
 
 const colorClasses: Record<string, { active: string; icon: string }> = {
@@ -37,8 +39,18 @@ const colorClasses: Record<string, { active: string; icon: string }> = {
   cyan: {
     active: 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-white border border-cyan-500/50',
     icon: 'text-cyan-400'
+  },
+  rose: {
+    active: 'bg-gradient-to-r from-rose-500/20 to-red-500/20 text-white border border-rose-500/50',
+    icon: 'text-rose-400'
+  },
+  yellow: {
+    active: 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-white border border-yellow-500/50',
+    icon: 'text-yellow-400'
   }
 }
+
+const getColorClass = (color: string) => colorClasses[color] || { active: '', icon: '' }
 </script>
 
 <template>
@@ -60,10 +72,10 @@ const colorClasses: Record<string, { active: string; icon: string }> = {
               :to="section.path"
               class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200"
               :class="route.path === section.path
-                ? colorClasses[section.color].active
+                ? getColorClass(section.color).active
                 : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'"
             >
-              <component :is="section.icon" :class="`w-5 h-5 ${route.path === section.path ? 'text-white' : colorClasses[section.color].icon}`" />
+              <component :is="section.icon" :class="`w-5 h-5 ${route.path === section.path ? 'text-white' : getColorClass(section.color).icon}`" />
               <span class="font-medium">{{ section.label }}</span>
             </router-link>
           </li>

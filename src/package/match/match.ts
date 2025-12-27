@@ -19,7 +19,7 @@ export function match<T, R>(patterns: Matcher<T, R>): (value: T) => R {
     const valueStr = String(value);
 
     if (valueStr in patterns) {
-      return (patterns as any)[valueStr](value);
+      return patterns[valueStr as keyof typeof patterns](value);
     }
 
     // Use default case

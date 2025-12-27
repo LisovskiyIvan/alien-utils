@@ -3,7 +3,7 @@ import Section from '@/components/Section.vue'
 import CodeBlock from '@/components/CodeBlock.vue'
 import { ArrowRight } from 'lucide-vue-next'
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap } from '@your-org/utils';
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap, Stack, Queue } from '@your-org/utils';
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -38,7 +38,16 @@ stringify("hello"); // "hello"
 const bimap = new Bimap();
 bimap.set('alice', 1);
 bimap.get('alice');    // 1
-bimap.getReverse(1);   // 'alice'`
+bimap.getReverse(1);   // 'alice'
+
+// Stack
+const stack = new Stack<number>();
+stack.push(1).push(2).push(3);
+stack.pop(); // Some(3)
+
+// Queue
+const queue = Queue.from([1, 2, 3]);
+queue.dequeue(); // Some(1)`
 </script>
 
 <template>
@@ -60,7 +69,7 @@ bimap.getReverse(1);   // 'alice'`
     </div>
 
     <Section title="Features">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-pink-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-pink-400 mb-2">Iter</h3>
           <p class="text-gray-400">Lazy iterator with pipeline-based optimizations. Chain operations without creating intermediate arrays.</p>
@@ -84,6 +93,14 @@ bimap.getReverse(1);   // 'alice'`
         <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-cyan-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-cyan-400 mb-2">Bimap</h3>
           <p class="text-gray-400">Bidirectional map for two-way lookups. Map keys to values and values back to keys.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-rose-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-rose-400 mb-2">Stack</h3>
+          <p class="text-gray-400">LIFO data structure with O(1) operations. Perfect for undo/redo and backtracking.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-yellow-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-yellow-400 mb-2">Queue</h3>
+          <p class="text-gray-400">FIFO data structure with ring buffer. O(1) operations for task scheduling and BFS.</p>
         </div>
       </div>
     </Section>

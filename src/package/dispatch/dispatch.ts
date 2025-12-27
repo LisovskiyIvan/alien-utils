@@ -7,14 +7,14 @@ type HandlerEntry<T, R> = {
   handler: Handler<T, R>;
 };
 
-export function dispatch<T = any, R = any>() {
-  const handlers: HandlerEntry<any, R>[] = [];
+export function dispatch<T = unknown, R = unknown>() {
+  const handlers: HandlerEntry<unknown, R>[] = [];
   let defaultHandler: ((value: T) => R) | null = null;
 
   function dispatchFn(value: T): R {
     for (const { guard, handler } of handlers) {
       if (guard(value)) {
-        return handler(value as any);
+        return handler(value as never);
       }
     }
 
@@ -26,13 +26,14 @@ export function dispatch<T = any, R = any>() {
   }
 
   dispatchFn.on = function <U>(guard: TypeGuard<U>, handler: Handler<U, R>): typeof dispatchFn {
+    // @ts-expect-error - Type guard ensures runtime safety, but TS can't prove it
     handlers.push({ guard, handler });
-    return dispatchFn as any;
+    return dispatchFn as never;
   };
 
   dispatchFn.default = function (handler: (value: T) => R): typeof dispatchFn {
     defaultHandler = handler;
-    return dispatchFn as any;
+    return dispatchFn as never;
   };
 
   return dispatchFn;

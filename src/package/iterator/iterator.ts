@@ -48,7 +48,7 @@ type OpType =
 interface Op {
   type: OpType;
   fn: Function;
-  param?: any; // Дополнительный параметр (для take, skip, stepBy и т.д.)
+  param?: unknown; // Дополнительный параметр (для take, skip, stepBy и т.д.)
 }
 
 /**
@@ -904,10 +904,10 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   zip<U>(other: Iterable<U>): Iter<[T, U]> {
-    const self = this;
+    const source = this;
     return new Iter({
       *[Symbol.iterator]() {
-        const iter1 = self[Symbol.iterator]();
+        const iter1 = source[Symbol.iterator]();
         const iter2 = other[Symbol.iterator]();
         while (true) {
           const next1 = iter1.next();
@@ -933,10 +933,10 @@ export class Iter<T> implements Iterable<T> {
    * ```
    */
   chain(other: Iterable<T>): Iter<T> {
-    const self = this;
+    const source = this;
     return new Iter({
       *[Symbol.iterator]() {
-        yield* self;
+        yield* source;
         yield* other;
       },
     });
