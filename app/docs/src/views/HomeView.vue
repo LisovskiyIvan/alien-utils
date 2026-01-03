@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import Section from '@/components/Section.vue'
 import CodeBlock from '@/components/CodeBlock.vue'
-import { ArrowRight } from 'lucide-vue-next'
+import { ArrowRight, History } from 'lucide-vue-next'
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap, Stack, Queue } from '@your-org/utils';
+const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap, Stack, Queue, History } from '@dayme/alien-utils';
 
 // Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
@@ -47,13 +47,20 @@ stack.pop(); // Some(3)
 
 // Queue
 const queue = Queue.from([1, 2, 3]);
-queue.dequeue(); // Some(1)`
+queue.dequeue(); // Some(1)
+
+// History
+const h = new History({ text: '' });
+console.log(h.state); // ''
+h.set('hello');
+h.set('world');
+h.undo();`
 </script>
 
 <template>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20">
     <div class="text-center mb-16">
-      <h1 class="text-6xl font-bold mb-6 bg-linear-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+      <h1 class="text-6xl h-18 font-bold mb-6 bg-linear-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
         Utils Library
       </h1>
       <p class="text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
@@ -101,6 +108,10 @@ queue.dequeue(); // Some(1)`
         <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-yellow-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-yellow-400 mb-2">Queue</h3>
           <p class="text-gray-400">FIFO data structure with ring buffer. O(1) operations for task scheduling and BFS.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-indigo-400 mb-2">History</h3>
+          <p class="text-gray-400">Undo/redo with controlled memory. Perfect for forms, editors, and state management.</p>
         </div>
       </div>
     </Section>

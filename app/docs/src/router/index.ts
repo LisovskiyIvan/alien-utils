@@ -9,6 +9,7 @@ import DispatchDocs from '@/views/DispatchDocs.vue'
 import BimapDocs from '@/views/BimapDocs.vue'
 import StackDocs from '@/views/StackDocs.vue'
 import QueueDocs from '@/views/QueueDocs.vue'
+import HistoryDocs from '@/views/HistoryDocs.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,7 @@ const router = createRouter({
         { path: 'bimap', name: 'bimap', component: BimapDocs },
         { path: 'stack', name: 'stack', component: StackDocs },
         { path: 'queue', name: 'queue', component: QueueDocs },
+        { path: 'history', name: 'history', component: HistoryDocs },
       ],
     },
   ],
