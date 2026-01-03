@@ -1,6 +1,6 @@
 {
   "name": "@dayme/alien-utils",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "TypeScript utility library with functional programming data structures (Option, Result, Iter, Stack, Queue, Bimap, Match, Dispatch)",
   "keywords": [
