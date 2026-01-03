@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List } from 'lucide-vue-next'
+import { RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List, SquareStack } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -13,6 +13,7 @@ const sections = [
   { id: 'bimap' as const, label: 'Bimap', icon: ArrowUpDown, path: '/docs/bimap', color: 'cyan' },
   { id: 'stack' as const, label: 'Stack', icon: Layers, path: '/docs/stack', color: 'rose' },
   { id: 'queue' as const, label: 'Queue', icon: List, path: '/docs/queue', color: 'yellow' },
+  { id: 'history' as const, label: 'History', icon: SquareStack, path: '/docs/history', color: 'indigo' },
 ]
 
 const colorClasses: Record<string, { active: string; icon: string }> = {
@@ -47,6 +48,10 @@ const colorClasses: Record<string, { active: string; icon: string }> = {
   yellow: {
     active: 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-white border border-yellow-500/50',
     icon: 'text-yellow-400'
+  },
+  indigo: {
+    active: 'bg-gradient-to-r from-indigo-500/20 to-blue-500/20 text-white border border-indigo-500/50',
+    icon: 'text-indigo-400'
   }
 }
 
