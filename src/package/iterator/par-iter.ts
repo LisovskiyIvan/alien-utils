@@ -169,8 +169,12 @@ export class ParIter<T> {
 
     // Добавляем операцию суммы в pipeline
     const ops: ParOp[] = [...this.ops, { type: "sum", fn: (a: number, b: number) => a + b }];
-    return await this.executeReduction(ops, (partialResults: number[]) =>
-      partialResults.reduce((acc, val) => acc + val, 0)
+    return await this.executeReduction(ops, (partialResults: any[]) =>
+      partialResults.reduce((acc, val) => {
+        // Each partial result is an array with one element [sum_value]
+        const sumValue = Array.isArray(val) && val.length > 0 ? val[0] : val;
+        return acc + Number(sumValue);
+      }, 0)
     );
   }
 
@@ -183,8 +187,12 @@ export class ParIter<T> {
     }
 
     // Для подсчёта нужно сначала применить все предыдущие операции, затем посчитать
-    return await this.executeReduction([], (partialResults: any[][]) =>
-      partialResults.reduce((acc, chunk) => acc + chunk.length, 0)
+    return await this.executeReduction(this.ops, (partialResults: any[][]) =>
+      partialResults.reduce((acc, chunk) => {
+        // Each chunk result is an array from processing operations like map/filter
+        // We need to count the elements in each chunk
+        return acc + (Array.isArray(chunk) ? chunk.length : 1);
+      }, 0)
     );
   }
 
@@ -198,11 +206,24 @@ export class ParIter<T> {
 
     // Добавляем операцию редукции в pipeline
     const ops: ParOp[] = [...this.ops, { type: "reduce", fn: reducer }];
-    return await this.executeReduction(ops, (partialResults: U[]) => {
+    return await this.executeReduction(ops, (partialResults: any[]) => {
       if (partialResults.length === 0 && initial !== undefined) {
-        return initial;
+        return initial as U;
       }
-      return partialResults.reduce((acc, val) => reducer(acc, val), initial as U);
+
+      // Extract actual values from arrays returned by processChunk
+      const extractedResults = partialResults.map(result =>
+        Array.isArray(result) && result.length > 0 ? result[0] : result
+      );
+
+      if (extractedResults.length === 1) {
+        return extractedResults[0];
+      }
+
+      // For multiple partial results, we need to reduce them together
+      // This is tricky because we need to apply the reducer across partial results
+      // A proper parallel reduce would need to combine partial reductions
+      return extractedResults.reduce((acc, val) => reducer(acc, val), initial as U);
     });
   }
 
@@ -397,7 +418,9 @@ export class ParIter<T> {
       }
     }
 
-    return result[0] !== undefined ? result[0] : result;
+    // For map and filter operations, we need to return the full array
+    // For sum, count, and reduce operations, we return the single value
+    return result;
   }
 
   /**

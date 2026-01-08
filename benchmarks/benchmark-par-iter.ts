@@ -1,5 +1,5 @@
-import { Iter } from './src/package/iterator/iterator';
-import { ParIter } from './src/package/iterator/par-iter';
+import { Iter } from '../src/package/iterator/iterator';
+import { ParIter } from '../src/package/iterator/par-iter';
 
 // Benchmark function
 function benchmark(name: string, fn: () => Promise<any>): Promise<number> {

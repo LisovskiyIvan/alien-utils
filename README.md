@@ -15,7 +15,7 @@ pnpm add @dayme/alien-utils
 ## Usage
 
 ```typescript
-import { Option, Result, Iter, Stack, Queue } from "@dayme/alien-utils";
+import { Option, Result, Iter, ParIter, Stack, Queue } from "@dayme/alien-utils";
 
 // Option - Handle nullable values
 const maybeValue = Option.from("hello");
@@ -30,6 +30,12 @@ Iter.from([1, 2, 3])
   .map(x => x * 2)
   .filter(x => x > 3)
   .collect(); // [4, 6]
+
+// ParIter - Parallel processing for CPU-intensive operations
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .map(x => x * 2)  // Processed in parallel
+  .filter(x => x > 5)
+  .collect(); // [6, 8, 10]
 
 // Stack - LIFO
 const stack = new Stack<number>();

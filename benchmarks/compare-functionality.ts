@@ -1,5 +1,5 @@
-import { Iter } from './src/package/iterator/iterator';
-import { ParIter } from './src/package/iterator/par-iter';
+import { Iter } from '../src/package/iterator/iterator';
+import { ParIter } from '../src/package/iterator/par-iter';
 
 console.log('=== COMPREHENSIVE FUNCTIONALITY COMPARISON: Iter vs ParIter ===\n');
 

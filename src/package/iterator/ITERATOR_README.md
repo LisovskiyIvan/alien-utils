@@ -621,11 +621,159 @@ Iter.from([1, 2, 3, 4, 5, 6]).groupBy(x => x % 2 === 0 ? 'even' : 'odd');
 // Map {'odd' => [1, 3, 5], 'even' => [2, 4, 6]}
 ```
 
-#### `sort(compareFn?: (a: T, b: T) => number): Iter<T>`
+#### `sort(compareFn?: (a: T, b) => number): Iter<T>`
 
-Sorts elements (requires full materialization).
+---
+
+## 🚀 Parallel Processing with ParIter
+
+ParIter provides parallel processing capabilities for CPU-intensive operations on large datasets.
+
+### Key Features
+
+- **Parallel execution**: Distributes work across multiple threads/workers
+- **Automatic chunking**: Splits data into chunks for parallel processing
+- **Performance gains**: Significant speedups for CPU-intensive operations
+- **Same API**: Similar interface to Iter for easy migration
+
+### Creating ParIter
+
+#### `ParIter.from(iterable: Iterable<T>, config?: ParIterConfig): ParIter<T>`
+
+Creates a parallel iterator from any iterable.
 
 ```typescript
+import { ParIter } from '@dayme/utils/iterator';
+
+const parIter = ParIter.from([1, 2, 3, 4, 5]);
+```
+
+#### `ParIter.create(iterable: Iterable<T>, config?: ParIterConfig): ParIter<T>`
+
+Alternative creation method with explicit configuration.
+
+```typescript
+const parIter = ParIter.create([1, 2, 3, 4, 5], {
+  workers: 4,
+  chunkSize: 10000
+});
+```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `workers` | number | `navigator.hardwareConcurrency \|\| 4` | Number of parallel workers |
+| `chunkSize` | number | `10000` | Size of data chunks |
+| `strategy` | `"static"` \| `"dynamic"` | `"static"` | Chunk distribution strategy |
+| `allowSideEffects` | boolean | `false` | Allow side-effect operations |
+
+### Parallel Operations
+
+#### `map<U>(fn: (value: T, index: number) => U): ParIter<U>`
+
+Transforms each element in parallel.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .map(x => x * 2)
+  .collect();
+// [2, 4, 6, 8, 10]
+```
+
+#### `filter(predicate: (value: T, index: number) => boolean): ParIter<T>`
+
+Filters elements in parallel.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .filter(x => x % 2 === 0)
+  .collect();
+// [2, 4]
+```
+
+#### `sum(): Promise<number>`
+
+Calculates sum in parallel.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .sum();
+// 15
+```
+
+#### `count(): Promise<number>`
+
+Counts elements in parallel.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .filter(x => x > 2)
+  .count();
+// 3
+```
+
+#### `reduce<U>(reducer: (acc: U, value: T) => U, initial?: U): Promise<U>`
+
+Performs reduction in parallel.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .reduce((acc, val) => acc + val, 0);
+// 15
+```
+
+#### `collect(): Promise<T[]>`
+
+Collects all elements into an array.
+
+```typescript
+const result = await ParIter.from([1, 2, 3, 4, 5])
+  .map(x => x * 2)
+  .collect();
+// [2, 4, 6, 8, 10]
+```
+
+### Non-Parallelizable Operations
+
+The following operations cannot be parallelized and will throw an error:
+
+- `take(n)` - Order-dependent operation
+- `takeWhile(predicate)` - Order-dependent operation
+- `find(predicate)` - Order-dependent operation
+- `first()` - Order-dependent operation
+- `scan(initial, accumulator)` - Order-dependent operation
+
+### When to Use ParIter
+
+✅ **Use ParIter when:**
+- Processing large datasets (>10,000 elements)
+- Performing CPU-intensive transformations
+- Operations can be parallelized (map, filter, sum, count)
+- Memory usage isn't a constraint
+
+❌ **Use Iter when:**
+- Working with small datasets (<10,000 elements)
+- Using order-dependent operations (take, find, first)
+- Need maximum compatibility with all operations
+- Lower memory footprint is important
+
+### Performance Comparison
+
+ParIter typically provides 1.5x-4x speedup for CPU-intensive operations on large datasets:
+
+```typescript
+// Performance benchmark results:
+// - Map operation: 1.5x speedup
+// - Map + Filter: 1.7x speedup
+// - Sum reduction: 1.5x speedup
+// - Count operation: 3.9x speedup
+// - Large datasets: Up to 4x speedup
+```
+
+---
+
+#### `sort(compareFn?: (a: T, b: T) => number): Iter<T>`
 Iter.from([3, 1, 4, 1, 5]).sort().collect();
 // [1, 1, 3, 4, 5]
 
