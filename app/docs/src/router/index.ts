@@ -10,6 +10,7 @@ import BimapDocs from '@/views/BimapDocs.vue'
 import StackDocs from '@/views/StackDocs.vue'
 import QueueDocs from '@/views/QueueDocs.vue'
 import HistoryDocs from '@/views/HistoryDocs.vue'
+import ParIterDocs from '@/views/ParIterDocs.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,7 @@ const router = createRouter({
         { path: 'stack', name: 'stack', component: StackDocs },
         { path: 'queue', name: 'queue', component: QueueDocs },
         { path: 'history', name: 'history', component: HistoryDocs },
+        { path: 'pariter', name: 'pariter', component: ParIterDocs },
       ],
     },
   ],

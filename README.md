@@ -79,6 +79,23 @@ bun run docs:build
 bun run docs:preview
 ```
 
+## Benchmarks
+
+Performance and functionality benchmarks are located in the `benchmarks/` folder:
+
+- `benchmark-par-iter.ts`: Performance comparison between Iter and ParIter
+- `compare-functionality.ts`: Comprehensive functionality comparison
+
+To run benchmarks:
+
+```bash
+# Run performance benchmark
+bun benchmarks/benchmark-par-iter.ts
+
+# Run functionality comparison
+bun benchmarks/compare-functionality.ts
+```
+
 ## Testing
 
 Tests are written using Bun's built-in test framework:

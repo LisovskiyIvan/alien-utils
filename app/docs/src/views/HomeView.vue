@@ -3,13 +3,19 @@ import Section from '@/components/Section.vue'
 import CodeBlock from '@/components/CodeBlock.vue'
 import { ArrowRight, History } from 'lucide-vue-next'
 
-const quickStartCode = `import { Iter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap, Stack, Queue, History } from '@dayme/alien-utils';
+const quickStartCode = `import { Iter, ParIter, Some, None, Ok, Err, match, dispatch, isNumber, isString, Bimap, Stack, Queue, History } from '@dayme/alien-utils';
 
-// Iterator
+// Sequential Iterator
 const result = Iter.from([1, 2, 3, 4, 5])
   .map(x => x * 2)
   .filter(x => x > 5)
   .collect(); // [6, 8, 10]
+
+// Parallel Iterator (for large datasets with CPU-intensive operations)
+const parallelResult = await ParIter.from(largeDataset)
+  .map(x => expensiveComputation(x))
+  .filter(x => x > threshold)
+  .sum(); // Parallel reduction
 
 // Option
 const option = new Some(42);
@@ -80,6 +86,10 @@ h.undo();`
         <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-pink-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-pink-400 mb-2">Iter</h3>
           <p class="text-gray-400">Lazy iterator with pipeline-based optimizations. Chain operations without creating intermediate arrays.</p>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500/50 transition-colors">
+          <h3 class="text-xl font-semibold text-indigo-400 mb-2">ParIter</h3>
+          <p class="text-gray-400">Parallel iterator for data-parallel execution. Leverage multiple CPU cores for large datasets.</p>
         </div>
         <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors">
           <h3 class="text-xl font-semibold text-blue-400 mb-2">Option</h3>

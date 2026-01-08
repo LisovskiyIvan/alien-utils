@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List, SquareStack } from 'lucide-vue-next'
+import { RefreshCw, Diamond, CheckCircle, Target, ArrowRightLeft, ArrowUpDown, Layers, List, SquareStack, Cpu } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -14,6 +14,7 @@ const sections = [
   { id: 'stack' as const, label: 'Stack', icon: Layers, path: '/docs/stack', color: 'rose' },
   { id: 'queue' as const, label: 'Queue', icon: List, path: '/docs/queue', color: 'yellow' },
   { id: 'history' as const, label: 'History', icon: SquareStack, path: '/docs/history', color: 'indigo' },
+  { id: 'pariter' as const, label: 'ParIter', icon: Cpu, path: '/docs/pariter', color: 'purple' },
 ]
 
 const colorClasses: Record<string, { active: string; icon: string }> = {
