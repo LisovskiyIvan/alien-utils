@@ -1923,4 +1923,20 @@ export class Iter<T> implements Iterable<T> {
   reverse(): Iter<T> {
     return new Iter(this.collect().reverse());
   }
+
+  /**
+   * Преобразует Iter в ParIter для параллельной обработки
+   *
+   * @param config - Конфигурация параллельного выполнения
+   * @returns ParIter для параллельной обработки
+   *
+   * @example
+   * ```ts
+   * Iter.from(data)
+   *   .map(x => heavy(x))
+   *   .filter(x => x > 0)
+   *   .par({ workers: 4, chunkSize: 10_000 })
+   *   .reduce((a, b) => a + b)
+   * ```
+   */
 }

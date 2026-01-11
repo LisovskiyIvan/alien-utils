@@ -28,6 +28,21 @@ const int8Array = new Int8Array([1, 2, 3, 4, 5]);
 const uint16Array = new Uint16Array([10, 20, 30, 40]);
 const float32Array = new Float32Array([1.5, 2.5, 3.5]);
 
+// For large datasets with CPU-intensive operations, use ParIter
+const { ParIter } = await import('@dayme/alien-utils');
+
+// Sequential processing (good for small datasets)
+const seqResult = Iter.from([1, 2, 3, 4, 5])
+  .map(x => expensiveFunction(x))
+  .filter(x => x > threshold)
+  .collect();
+
+// Parallel processing (better for large datasets)
+const parResult = await ParIter.from(largeDataset)
+  .map(x => expensiveFunction(x))
+  .filter(x => x > threshold)
+  .collect();;
+
 // Iter recognizes typed arrays and uses fast paths
 Iter.from(int8Array)
   .map(x => x * 2)
@@ -637,6 +652,23 @@ Iter.from([1,2,3,4,5])
         </li>
       </ul>
       <CodeBlock :code="iterPerformanceCode" />
+    </Section>
+
+    <Section title="Parallel Processing with ParIter">
+      <p class="text-gray-300 mb-4">
+        For large datasets with CPU-intensive operations, consider using <code class="bg-gray-800 px-1 rounded text-pink-400">ParIter</code>
+        which leverages multiple CPU cores for parallel processing:
+      </p>
+
+      <div class="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border border-purple-700 rounded-lg p-4 mb-4">
+        <p class="text-purple-200">
+          <strong>Tip:</strong> Use <code class="bg-purple-900/50 px-1 rounded">ParIter</code> for datasets with &gt;100,000 elements
+          and CPU-intensive transformations. Use <code class="bg-purple-900/50 px-1 rounded">Iter</code> for smaller datasets
+          or when you need operations that preserve order (take, find, etc.).
+        </p>
+      </div>
+
+      <CodeBlock :code="iterTypedArrayCode" />
     </Section>
   </div>
 </template>
